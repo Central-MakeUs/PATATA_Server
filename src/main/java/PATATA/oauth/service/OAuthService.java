@@ -2,14 +2,22 @@ package PATATA.oauth.service;
 
 import PATATA.apiPayLoad.exception.JwtHandler;
 import PATATA.apiPayLoad.exception.MemberHandler;
+import PATATA.apiPayLoad.exception.OAuthHandler;
 import PATATA.jwt.service.JwtService;
 import PATATA.member.converter.MemberConverter;
 import PATATA.member.entity.Member;
 import PATATA.member.repository.MemberRepository;
 import PATATA.oauth.apple.ApplePublicKeyGenerator;
-import PATATA.oauth.client.AppleAuthClient;
+import PATATA.oauth.apple.client.AppleAuthClient;
 import PATATA.oauth.dto.AppleLoginRequestDTO;
+import PATATA.oauth.dto.GoogleLoginRequestDTO;
 import PATATA.oauth.dto.LoginResponseDTO;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,11 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.PublicKey;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import static PATATA.apiPayLoad.code.status.ErrorStatus.MEMBER_NOT_FOUND;
-import static PATATA.apiPayLoad.code.status.ErrorStatus.REFRESH_TOKEN_UNAUTHORIZED;
+import static PATATA.apiPayLoad.code.status.ErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +41,10 @@ public class OAuthService {
     private final MemberRepository memberRepository;
 
     //@Value("${spring.social-login.provider.apple.client-id}")
-    //private String clientId;
+    //private String appleClientId;
+
+    @Value("${spring.social-login.provider.google.client-id}")
+    private String googleClientId;
 
     //accessToken, refreshToken 발급
     @Transactional
@@ -80,17 +91,51 @@ public class OAuthService {
 
         Claims claims = jwtService.getTokenClaims(appleLoginRequestDto.getIdentityToken(), publicKey);
         String sub = claims.getSubject();
+        String email = claims.get("email", String.class);
 
         Member member = memberRepository.findByAppleSub(sub).orElse(null);
 
         if (member == null) {
             member = memberRepository.save(
-                    MemberConverter.toAppleMember(sub, appleLoginRequestDto)
+                    MemberConverter.toAppleMember(sub, email)
             );
         }
 
         return createToken(member);
     }
+
+    @Transactional
+    public LoginResponseDTO googleLogin(GoogleLoginRequestDTO googleReqDto) {
+        // Google 로그인 구현
+        GoogleIdToken idToken = verifyGoogleToken(googleReqDto.getIdToken());
+        if (idToken == null) {
+            throw new OAuthHandler(INVALID_GOOGLE_ID_TOKEN);
+        }
+
+        Payload payload = idToken.getPayload();
+        String email = payload.getEmail();
+
+        Member member = memberRepository.findByEmail(email)
+                .orElseGet(() -> MemberConverter.toGoogleMember(email));
+
+        return createToken(member);
+    }
+
+    private GoogleIdToken verifyGoogleToken(String idTokenString) {
+        try {
+            JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+            NetHttpTransport transport = new NetHttpTransport();
+
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            return verifier.verify(idTokenString);
+        } catch (Exception e) {
+            throw new OAuthHandler(TOKEN_VALIDATION_FAILED);
+        }
+    }
+
 
     @Transactional
     public void logout(String refreshToken) {

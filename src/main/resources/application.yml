@@ -28,6 +28,11 @@ spring:
         team-id: ${APPLE_TEAM_ID}
         audience: https://appleid.apple.com
         private-key: ${APPLE_SECRET}
+      google:
+        client-id: ${GOOGLE_CLIENT_ID}
+        client-secret: ${GOOGLE_CLIENT_SECRET}
+        redirect-uri:
+
 jwt:
   secretKey: ${JWT_SECRET}
 

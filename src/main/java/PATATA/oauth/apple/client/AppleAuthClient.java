@@ -1,4 +1,4 @@
-package PATATA.oauth.client;
+package PATATA.oauth.apple.client;
 
 import PATATA.oauth.apple.ApplePublicKeyResponse;
 import org.springframework.cloud.openfeign.FeignClient;
