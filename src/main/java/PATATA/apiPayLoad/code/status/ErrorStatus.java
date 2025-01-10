@@ -19,10 +19,11 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //JWT 토큰 에러
     TOKEN_EMPTY(HttpStatus.BAD_REQUEST, "TOKEN400", "토큰값이 존재하지 않습니다."),
-    ACCESS_TOKEN_UNAUTHORIZED(HttpStatus.INSUFFICIENT_SPACE_ON_RESOURCE, "TOKEN401", "유효하지 않은 Access Token입니다."),
+    ACCESS_TOKEN_UNAUTHORIZED(HttpStatus.INSUFFICIENT_SPACE_ON_RESOURCE, "TOKEN401", "유효하지 않은 AccessToken입니다."),
     REFRESH_TOKEN_UNAUTHORIZED(HttpStatus.I_AM_A_TEAPOT, "TOKEN402", "유효하지 않은 RefreshToken입니다. 다시 로그인하세요."),
     INVALID_APPLE_ID_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN403", "Apple OAuth Identity Token 값이 올바르지 않습니다."),
     INVALID_APPLE_ID_TOKEN_INFO(HttpStatus.UNAUTHORIZED, "TOKEN404", "Apple id_token 값의 alg, kid 정보가 올바르지 않습니다."),
+    APPLE_ID_TOKEN_EMPTY(HttpStatus.UNAUTHORIZED, "TOKEN405", "APPLE ID TOKEN 값이 비어 있습니다."),
 
     //Member 에러
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "해당하는 사용자를 찾을 수 없습니다.");
