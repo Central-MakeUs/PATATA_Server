@@ -35,7 +35,7 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer(){
         return web -> web.ignoring()
                 .requestMatchers("/swagger-ui/**", "/swagger/**", "/swagger-resources/**", "/swagger-ui.html", "/test",
-                        "/configuration/ui",  "/v3/api-docs/**", "/auth/refresh", "/auth/apple/**");
+                        "/configuration/ui",  "/v3/api-docs/**", "/auth/refresh", "/auth/apple/**", "/auth/google/**");
     }
 
     @Bean

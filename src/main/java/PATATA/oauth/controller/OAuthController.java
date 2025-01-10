@@ -5,6 +5,7 @@ import PATATA.apiPayLoad.exception.JwtHandler;
 import PATATA.apiPayLoad.exception.OAuthHandler;
 import PATATA.member.entity.Member;
 import PATATA.oauth.dto.AppleLoginRequestDTO;
+import PATATA.oauth.dto.GoogleLoginRequestDTO;
 import PATATA.oauth.dto.LoginResponseDTO;
 import PATATA.oauth.service.OAuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,8 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static PATATA.apiPayLoad.code.status.ErrorStatus.APPLE_ID_TOKEN_EMPTY;
-import static PATATA.apiPayLoad.code.status.ErrorStatus.TOKEN_EMPTY;
+import static PATATA.apiPayLoad.code.status.ErrorStatus.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,11 +31,16 @@ public class OAuthController {
     public ApiResponse<LoginResponseDTO> regenerateAccessToken(HttpServletRequest request) {
         String refreshToken = request.getHeader("RefreshToken");
 
-        if (StringUtils.hasText(refreshToken) && refreshToken.startsWith("Bearer ")) {
-            LoginResponseDTO result = oAuthService.regenerateAccessToken(refreshToken.substring(7));
-            return ApiResponse.onSuccess(result);
-        } else
+        if (!StringUtils.hasText(refreshToken)) {
             throw new OAuthHandler(TOKEN_EMPTY);
+        }
+
+        if (!refreshToken.startsWith("Bearer ")) {
+            throw new OAuthHandler(INVALID_TOKEN_FORMAT);
+        }
+
+        LoginResponseDTO result = oAuthService.regenerateAccessToken(refreshToken.substring(7));
+        return ApiResponse.onSuccess(result);
     }
 
     @Operation(summary = "애플 로그인 API")
@@ -44,6 +49,14 @@ public class OAuthController {
         if (appleReqDto.getIdentityToken() == null)
             throw new OAuthHandler(APPLE_ID_TOKEN_EMPTY);
         return ApiResponse.onSuccess(oAuthService.appleLogin(appleReqDto));
+    }
+
+    @Operation(summary = "구글 로그인 API")
+    @PostMapping("/google/login")
+    public ApiResponse<LoginResponseDTO> googleLogin(@RequestBody @Validated GoogleLoginRequestDTO googleReqDto) {
+        if (googleReqDto.getIdToken() == null)
+            throw new OAuthHandler(GOOGLE_ID_TOKEN_EMPTY);
+        return ApiResponse.onSuccess(oAuthService.googleLogin(googleReqDto));
     }
 
     @Operation(summary = "회원 로그아웃 API")
