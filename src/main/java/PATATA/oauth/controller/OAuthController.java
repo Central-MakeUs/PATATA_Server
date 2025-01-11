@@ -59,7 +59,7 @@ public class OAuthController {
         return ApiResponse.onSuccess(oAuthService.googleLogin(googleReqDto));
     }
 
-    @Operation(summary = "햐로그아웃 API")
+    @Operation(summary = "이건 로그아웃 API")
     @PostMapping("/logout")
     public ApiResponse<String> logout(@AuthenticationPrincipal Member member) {
         String token = member.getRefreshToken();
