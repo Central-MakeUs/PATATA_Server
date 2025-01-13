@@ -115,8 +115,13 @@ public class OAuthService {
         Payload payload = idToken.getPayload();
         String email = payload.getEmail();
 
-        Member member = memberRepository.findByEmail(email)
-                .orElseGet(() -> MemberConverter.toGoogleMember(email));
+        Member member = memberRepository.findByEmail(email).orElse(null);
+
+        if (member == null) {
+            member = memberRepository.save(
+                    MemberConverter.toGoogleMember(email)
+            );
+        }
 
         return createToken(member);
     }
