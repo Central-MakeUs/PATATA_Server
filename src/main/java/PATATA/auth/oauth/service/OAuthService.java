@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -46,8 +47,11 @@ public class OAuthService {
     //@Value("${spring.social-login.provider.apple.client-id}")
     //private String appleClientId;
 
-    @Value("${spring.social-login.provider.google.client-id}")
-    private String googleClientId;
+    @Value("${spring.social-login.provider.google.client-id.android}")
+    private String androidClientId;
+
+    @Value("${spring.social-login.provider.google.client-id.ios}")
+    private String iosClientId;
 
     private static final String EMAIL_CLAIM = "email";
 
@@ -84,6 +88,8 @@ public class OAuthService {
 
         // Google 로그인 구현
         GoogleIdToken idToken = verifyGoogleToken(googleReqDto.getIdToken());
+        log.info("Google IDToken: {}", idToken);
+
 
         if (idToken == null) {
             throw new OAuthHandler(INVALID_GOOGLE_ID_TOKEN);
@@ -106,7 +112,7 @@ public class OAuthService {
         NetHttpTransport transport = new NetHttpTransport();
 
         this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(googleClientId))
+                .setAudience(Arrays.asList(androidClientId, iosClientId))
                 .build();
     }
 
