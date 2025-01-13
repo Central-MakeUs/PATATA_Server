@@ -7,6 +7,7 @@ import PATATA.jwt.service.JwtService;
 import PATATA.member.converter.MemberConverter;
 import PATATA.member.entity.Member;
 import PATATA.member.repository.MemberRepository;
+import PATATA.member.service.MemberService;
 import PATATA.oauth.apple.ApplePublicKeyGenerator;
 import PATATA.oauth.apple.client.AppleAuthClient;
 import PATATA.oauth.dto.AppleLoginRequestDTO;
@@ -19,7 +20,9 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import io.jsonwebtoken.Claims;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,18 +30,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 
 import static PATATA.apiPayLoad.code.status.ErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OAuthService {
 
     private final AppleAuthClient appleAuthClient;
     private final ApplePublicKeyGenerator applePublicKeyGenerator;
     private final JwtService jwtService;
+    private final MemberService memberService;
     private final MemberRepository memberRepository;
+    private GoogleIdTokenVerifier googleIdTokenVerifier;
 
     //@Value("${spring.social-login.provider.apple.client-id}")
     //private String appleClientId;
@@ -46,68 +51,42 @@ public class OAuthService {
     @Value("${spring.social-login.provider.google.client-id}")
     private String googleClientId;
 
-    //accessToken, refreshToken 발급
-    @Transactional
-    public LoginResponseDTO createToken(Member member) {
-        String newAccessToken = jwtService.generateAccessToken(member.getMemberId());
-        String newRefreshToken = jwtService.generateRefreshToken(member.getMemberId());
-
-        // DB에 refreshToken 저장
-        member.updateRefreshToken(newRefreshToken);
-        memberRepository.save(member);
-        return new LoginResponseDTO(member.getNickName(), member.getEmail(), newAccessToken, newRefreshToken);
-    }
-
-    // refreshToken으로 accessToken 발급하기
-    @Transactional
-    public LoginResponseDTO regenerateAccessToken(String refreshToken) {
-        // refresh token 유효성 검사
-        if (!jwtService.validateTokenBoolean(refreshToken))
-            throw new JwtHandler(REFRESH_TOKEN_UNAUTHORIZED);
-
-        Optional<Member> getMember = memberRepository.findByRefreshToken(refreshToken);
-        if (getMember.isEmpty())
-            throw new MemberHandler(MEMBER_NOT_FOUND);
-
-        Member member = getMember.get();
-        if (!refreshToken.equals(member.getRefreshToken()))
-            throw new JwtHandler(REFRESH_TOKEN_UNAUTHORIZED);
-
-        String newRefreshToken = jwtService.generateRefreshToken(member.getMemberId());
-        String newAccessToken = jwtService.generateAccessToken(member.getMemberId());
-
-        member.updateRefreshToken(newRefreshToken);
-        memberRepository.save(member);
-
-        return new LoginResponseDTO(member.getNickName(), member.getEmail(), newAccessToken, newRefreshToken);
-    }
+    private static final String EMAIL_CLAIM = "email";
 
     // 애플 로그인
     @Transactional
     public LoginResponseDTO appleLogin(AppleLoginRequestDTO appleLoginRequestDto) {
 
-        Map<String, String> headers = jwtService.parseHeader(appleLoginRequestDto.getIdentityToken());
-        PublicKey publicKey = applePublicKeyGenerator.generatePublicKey(headers, appleAuthClient.getAppleAuthPublicKey());
-
-        Claims claims = jwtService.getTokenClaims(appleLoginRequestDto.getIdentityToken(), publicKey);
+        try{ Claims claims = validateAndGetClaims(appleLoginRequestDto.getIdentityToken());
         String sub = claims.getSubject();
-        String email = claims.get("email", String.class);
+        String email = claims.get(EMAIL_CLAIM, String.class);
 
-        Member member = memberRepository.findByAppleSub(sub).orElse(null);
+        Member member = memberRepository.findByAppleSub(sub)
+                .orElseGet(() -> memberRepository.save(
+                        MemberConverter.toAppleMember(sub, email)
+                ));
 
-        if (member == null) {
-            member = memberRepository.save(
-                    MemberConverter.toAppleMember(sub, email)
-            );
+        return memberService.createToken(member);
         }
+        catch (Exception e) {
+            log.error("Apple 로그인 실패: ", e);
+            throw new OAuthHandler(APPLE_LOGIN_FAILED);
+        }
+    }
 
-        return createToken(member);
+    private Claims validateAndGetClaims(String identityToken) {
+        Map<String, String> headers = jwtService.parseHeader(identityToken);
+        PublicKey publicKey = applePublicKeyGenerator.generatePublicKey(headers,
+                appleAuthClient.getAppleAuthPublicKey());
+        return jwtService.getTokenClaims(identityToken, publicKey);
     }
 
     @Transactional
     public LoginResponseDTO googleLogin(GoogleLoginRequestDTO googleReqDto) {
+
         // Google 로그인 구현
         GoogleIdToken idToken = verifyGoogleToken(googleReqDto.getIdToken());
+
         if (idToken == null) {
             throw new OAuthHandler(INVALID_GOOGLE_ID_TOKEN);
         }
@@ -115,42 +94,30 @@ public class OAuthService {
         Payload payload = idToken.getPayload();
         String email = payload.getEmail();
 
-        Member member = memberRepository.findByEmail(email).orElse(null);
+        Member member = memberRepository.findByEmail(email)
+                .orElseGet(() -> memberRepository.save(
+                        MemberConverter.toGoogleMember(email)
+                ));
 
-        if (member == null) {
-            member = memberRepository.save(
-                    MemberConverter.toGoogleMember(email)
-            );
-        }
-
-        return createToken(member);
+        return memberService.createToken(member);
     }
 
+    @PostConstruct
+    public void initializeGoogleVerifier() {
+        JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+        NetHttpTransport transport = new NetHttpTransport();
+
+        this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+    }
+
+    // verifyGoogleToken 메서드 수정
     private GoogleIdToken verifyGoogleToken(String idTokenString) {
         try {
-            JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-            NetHttpTransport transport = new NetHttpTransport();
-
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
-
-            return verifier.verify(idTokenString);
+            return googleIdTokenVerifier.verify(idTokenString);
         } catch (Exception e) {
             throw new OAuthHandler(TOKEN_VALIDATION_FAILED);
         }
-    }
-
-
-    @Transactional
-    public void logout(String refreshToken) {
-        if (!jwtService.validateTokenBoolean(refreshToken))  // refresh token 유효성 검사
-            throw new JwtHandler(REFRESH_TOKEN_UNAUTHORIZED);
-
-        Member member = memberRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new MemberHandler(MEMBER_NOT_FOUND)); // 예외처리
-
-        member.refreshTokenExpires();
-        memberRepository.save(member);
     }
 }

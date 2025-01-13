@@ -4,6 +4,7 @@ import PATATA.apiPayLoad.ApiResponse;
 import PATATA.apiPayLoad.exception.JwtHandler;
 import PATATA.apiPayLoad.exception.OAuthHandler;
 import PATATA.member.entity.Member;
+import PATATA.member.service.MemberService;
 import PATATA.oauth.dto.AppleLoginRequestDTO;
 import PATATA.oauth.dto.GoogleLoginRequestDTO;
 import PATATA.oauth.dto.LoginResponseDTO;
@@ -25,6 +26,7 @@ import static PATATA.apiPayLoad.code.status.ErrorStatus.*;
 public class OAuthController {
 
     private final OAuthService oAuthService;
+    private final MemberService memberService;
 
     @Operation(summary = "토큰 재발급 API")
     @PostMapping("/refresh")
@@ -39,7 +41,7 @@ public class OAuthController {
             throw new OAuthHandler(INVALID_TOKEN_FORMAT);
         }
 
-        LoginResponseDTO result = oAuthService.regenerateAccessToken(refreshToken.substring(7));
+        LoginResponseDTO result = memberService.regenerateAccessToken(refreshToken.substring(7));
         return ApiResponse.onSuccess(result);
     }
 
@@ -65,7 +67,7 @@ public class OAuthController {
         String token = member.getRefreshToken();
 
         if (StringUtils.hasText(token)) {
-            oAuthService.logout(token);
+            memberService.logout(token);
             return ApiResponse.onSuccess("LOGOUT SUCCESS");
         } else
             throw new JwtHandler(TOKEN_EMPTY);
