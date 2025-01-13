@@ -1,7 +1,7 @@
-package PATATA.spot.entity;
+package PATATA.domain.spot.entity;
 
-import PATATA.common.BaseEntity;
-import PATATA.member.entity.Member;
+import PATATA.global.BaseEntity;
+import PATATA.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,10 +22,10 @@ public class Spot extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long spotId;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 45)
     private String spotName;
 
-    @Column(length = 200)
+    @Column(length = 300)
     private String spotDescription;
 
     @Column(nullable = false)

@@ -1,6 +1,5 @@
-package PATATA.spot.entity;
+package PATATA.domain.spot.entity;
 
-import PATATA.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,12 +11,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Tag extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tag_id")
-    private Long tagId;
+public class Category {
 
-    @Column(nullable = false, unique = true)
-    private String tagName;
+    @Id
+    @Column(name = "category_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long categoryId;
+
+    @Column(nullable = false)
+    private String categoryName;
 }

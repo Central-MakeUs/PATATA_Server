@@ -1,6 +1,6 @@
-package PATATA.spot.entity;
+package PATATA.domain.spot.entity;
 
-import PATATA.common.BaseEntity;
+import PATATA.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "spot_tag")
-public final class SpotTag extends BaseEntity {
+public class SpotTag extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

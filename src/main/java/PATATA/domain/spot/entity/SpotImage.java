@@ -1,6 +1,6 @@
-package PATATA.spot.entity;
+package PATATA.domain.spot.entity;
 
-import PATATA.common.BaseEntity;
+import PATATA.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
