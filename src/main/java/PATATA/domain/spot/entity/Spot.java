@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.Point;
+import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Entity
 @Getter
@@ -33,6 +35,7 @@ public class Spot extends BaseEntity {
     private String spotAddressDetail;
 
     @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.GEOMETRY)
     private Point spotLocation;
 
     private Integer spotScraps;

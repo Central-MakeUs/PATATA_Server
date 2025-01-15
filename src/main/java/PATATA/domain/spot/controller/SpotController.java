@@ -7,7 +7,9 @@ import PATATA.domain.spot.service.SpotService;
 import PATATA.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/spot")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class SpotController {
 
     private final SpotService spotService;
@@ -26,6 +29,7 @@ public class SpotController {
             @RequestBody SpotRequestDTO.CreateRequest requestDTOs) {
 
         SpotResponseDTO.CreateResponse responseDTO = spotService.createSpot(requestDTOs, member);
+        log.info("member={}, requestDTOs={}", member, requestDTOs);
         return ApiResponse.onSuccess(responseDTO);
     }
 
