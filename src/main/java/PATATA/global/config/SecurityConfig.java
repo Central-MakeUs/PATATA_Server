@@ -46,16 +46,15 @@ public class SecurityConfig {
     protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement((sessionManagement) ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
                                 .requestMatchers(
-                                        AntPathRequestMatcher.antMatcher("/auth/**")   //특정 경로에 대해 인증이 필요하다는 코드, 자유롭게 커스텀
+                                        AntPathRequestMatcher.antMatcher("/auth/**")
                                 ).authenticated()
-                                .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
                 .headers(
                         headersConfigurer ->
