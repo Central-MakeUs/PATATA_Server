@@ -1,8 +1,5 @@
 package PATATA.domain.spot.dto;
 
-import PATATA.domain.member.entity.Member;
-import PATATA.domain.spot.entity.Category;
-import PATATA.domain.spot.entity.Spot;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.awt.*;
+import java.util.List;
 
 public class SpotRequestDTO {
 
@@ -21,9 +19,6 @@ public class SpotRequestDTO {
         @NotBlank(message = "스팟 이름은 필수입니다.")
         @Size(max = 15, message = "스팟 이름은 15자 이하여야 합니다.")
         private String spotName;
-
-        @Size(max = 100, message = "스팟 설명은 100자 이하여야 합니다.")
-        private String spotDescription;
 
         @NotBlank(message = "스팟 주소는 필수입니다.")
         private String spotAddress;
@@ -36,8 +31,13 @@ public class SpotRequestDTO {
         @NotNull(message = "스팟 위치는 필수입니다.")
         private Double longitude;
 
+        @Size(max = 100, message = "스팟 설명은 100자 이하여야 합니다.")
+        private String spotDescription;
+
         @NotNull(message = "카테고리는 필수입니다.")
         private Long categoryId;
+
+        private List<String> tags;
 
         @Builder
         public CreateRequest(String spotName, String spotDescription, String spotAddress,
