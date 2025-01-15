@@ -31,32 +31,24 @@ public class SpotRequestDTO {
         private String spotAddressDetail;
 
         @NotNull(message = "스팟 위치는 필수입니다.")
-        private Point spotLocation;
+        private Double latitude;
+
+        @NotNull(message = "스팟 위치는 필수입니다.")
+        private Double longitude;
 
         @NotNull(message = "카테고리는 필수입니다.")
         private Long categoryId;
 
         @Builder
         public CreateRequest(String spotName, String spotDescription, String spotAddress,
-                             String spotAddressDetail, Point spotLocation, Long categoryId) {
+                             String spotAddressDetail, Double latitude, Double longitude, Long categoryId) {
             this.spotName = spotName;
             this.spotDescription = spotDescription;
             this.spotAddress = spotAddress;
             this.spotAddressDetail = spotAddressDetail;
-            this.spotLocation = spotLocation;
+            this.latitude = latitude;
+            this.longitude = longitude;
             this.categoryId = categoryId;
         }
-
-        public Spot toEntity(Category category, Member member) {
-            return Spot.builder()
-                    .spotName(this.spotName)
-                    .spotDescription(this.spotDescription)
-                    .spotAddress(this.spotAddress)
-                    .spotAddressDetail(this.spotAddressDetail)
-                    .spotLocation(this.spotLocation)
-                    .spotScraps(0)
-                    .spotCategory(category)
-                    .member(member)
-                    .build();
-        }
+    }
 }

@@ -85,12 +85,7 @@ public class OAuthService {
 
     @Transactional
     public LoginResponseDTO googleLogin(GoogleLoginRequestDTO googleReqDto) {
-
-        // Google 로그인 구현
         GoogleIdToken idToken = verifyGoogleToken(googleReqDto.getIdToken());
-        log.info("Google IDToken: {}", idToken);
-
-
         if (idToken == null) {
             throw new OAuthHandler(INVALID_GOOGLE_ID_TOKEN);
         }

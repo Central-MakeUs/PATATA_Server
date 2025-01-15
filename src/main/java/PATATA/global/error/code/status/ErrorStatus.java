@@ -33,7 +33,10 @@ public enum ErrorStatus implements BaseErrorCode {
     GOOGLE_ID_TOKEN_EMPTY(HttpStatus.UNAUTHORIZED, "OAUTH4006", "GOOGLE ID TOKEN 값이 비어 있습니다."),
 
     //Member 에러
-    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "해당하는 사용자를 찾을 수 없습니다.");
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "해당하는 사용자를 찾을 수 없습니다."),
+
+    //Spot 에러
+    CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

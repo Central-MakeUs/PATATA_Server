@@ -35,7 +35,7 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer(){
         return web -> web.ignoring()
                 .requestMatchers("/swagger-ui/**", "/swagger/**", "/swagger-resources/**", "/swagger-ui.html", "/test",
-                        "/configuration/ui",  "/v3/api-docs/**", "/auth/refresh", "/auth/apple/**", "/auth/google/**");
+                        "/configuration/ui",  "/v3/api-docs/**", "/auth/refresh", "/auth/apple/**", "/auth/google/**", "/spot/create");
     }
 
     @Bean
@@ -46,14 +46,14 @@ public class SecurityConfig {
     protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(Customizer.withDefaults())
+                .formLogin(AbstractHttpConfigurer::disable)
                 .sessionManagement((sessionManagement) ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests((authorizeRequests) ->
                         authorizeRequests
                                 .requestMatchers(
-                                        AntPathRequestMatcher.antMatcher("/auth/**")   //특정 경로에 대해 인증이 필요하다는 코드, 자유롭게 커스텀
+                                        AntPathRequestMatcher.antMatcher("/auth/**")
                                 ).authenticated()
                                 .anyRequest().authenticated()
                 )
