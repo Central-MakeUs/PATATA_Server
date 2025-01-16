@@ -6,8 +6,11 @@ import PATATA.domain.spot.dto.SpotResponseDTO;
 import PATATA.domain.spot.service.SpotService;
 import PATATA.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.io.ParseException;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +24,10 @@ public class SpotController {
 
     private final SpotService spotService;
     @Operation(summary = "스팟 생성")
-    @PostMapping(value = "/create")
+    @PostMapping(value = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ApiResponse<SpotResponseDTO.CreateResponse> createRecord(
             @AuthenticationPrincipal Member member,
-            @RequestBody SpotRequestDTO.CreateRequest requestDTOs) {
+            @ModelAttribute @Valid SpotRequestDTO.CreateRequest requestDTOs) {
         SpotResponseDTO.CreateResponse responseDTO = spotService.createSpot(requestDTOs, member);
         return ApiResponse.onSuccess(responseDTO);
     }

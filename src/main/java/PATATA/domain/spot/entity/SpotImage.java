@@ -23,7 +23,7 @@ public class SpotImage extends BaseEntity {
     private String imageUrl;
 
     @Column(nullable = false)
-    private boolean isRepresentative;
+    private Boolean isRepresentative;
 
     @Column(nullable = false)
     private Integer sequence;

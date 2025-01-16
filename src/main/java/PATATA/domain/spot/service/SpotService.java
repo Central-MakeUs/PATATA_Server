@@ -4,14 +4,8 @@ import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.converter.SpotConverter;
 import PATATA.domain.spot.dto.SpotRequestDTO;
 import PATATA.domain.spot.dto.SpotResponseDTO;
-import PATATA.domain.spot.entity.Category;
-import PATATA.domain.spot.entity.Spot;
-import PATATA.domain.spot.entity.SpotTag;
-import PATATA.domain.spot.entity.Tag;
-import PATATA.domain.spot.repository.CategoryRepository;
-import PATATA.domain.spot.repository.SpotRepository;
-import PATATA.domain.spot.repository.SpotTagRepository;
-import PATATA.domain.spot.repository.TagRepository;
+import PATATA.domain.spot.entity.*;
+import PATATA.domain.spot.repository.*;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
@@ -34,15 +28,33 @@ public class SpotService {
     private final GeometryFactory geometryFactory;
     private final TagRepository tagRepository;
     private final SpotTagRepository spotTagRepository;
+    private final SpotImageRepository spotImageRepository;
+    private final S3ImageService s3Service;
 
     @Transactional
     public SpotResponseDTO.CreateResponse createSpot(SpotRequestDTO.CreateRequest requestDTO, Member member) {
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
         Point point = geometryFactory.createPoint(new Coordinate(requestDTO.getLongitude(), requestDTO.getLatitude()));
+        //point.setSRID(4326);
 
         Spot spot = SpotConverter.toEntity(requestDTO, point, category, member);
         Spot savedSpot = spotRepository.save(spot);
+
+        if (requestDTO.getImages() != null && !requestDTO.getImages().isEmpty()) {
+            List<SpotImage> spotImages = requestDTO.getImages().stream()
+                    .map(imageRequest -> {
+                        String imageUrl = s3Service.upload(imageRequest.getFile());
+                        return SpotImage.builder()
+                                .spot(savedSpot)
+                                .imageUrl(imageUrl)
+                                .isRepresentative(imageRequest.getIsRepresentative())
+                                .sequence(imageRequest.getSequence())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+            spotImageRepository.saveAll(spotImages);
+        }
 
         if (requestDTO.getTags() != null && !requestDTO.getTags().isEmpty()) {
             requestDTO.getTags().forEach(tagName -> {

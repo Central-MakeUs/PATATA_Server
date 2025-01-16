@@ -36,7 +36,14 @@ public enum ErrorStatus implements BaseErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "해당하는 사용자를 찾을 수 없습니다."),
 
     //Spot 에러
-    CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다.");
+    CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
+
+    //S3 이미지 에러
+    IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMAGE4000", "이미지가 첨부되지 않았습니다."),
+    IMAGE_NOT_SAVE(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 저장에 실패했습니다." ),
+    S3_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "S34000", "이미지 업로드에 실패하였습니다."),
+    NO_FILE_EXTENTION(HttpStatus.BAD_REQUEST, "S34001", "해당되는 파일 확장자가 없습니다."),
+    INVALID_FILE_EXTENTION(HttpStatus.BAD_REQUEST, "S34002", "유효하지 않은 파일 확장자입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
