@@ -2,8 +2,8 @@ package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.converter.SpotConverter;
-import PATATA.domain.spot.dto.SpotRequestDTO;
-import PATATA.domain.spot.dto.SpotResponseDTO;
+import PATATA.domain.spot.dto.SpotRequestDto;
+import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.entity.*;
 import PATATA.domain.spot.repository.*;
 import PATATA.global.error.exception.SpotHandler;
@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static PATATA.global.error.code.status.ErrorStatus.CATEGORY_NOT_FOUND;
+import static PATATA.global.error.code.status.ErrorStatus.SPOT_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +30,11 @@ public class SpotService {
     private final TagRepository tagRepository;
     private final SpotTagRepository spotTagRepository;
     private final SpotImageRepository spotImageRepository;
+    private final ReviewRepository reviewRepository;
     private final S3ImageService s3Service;
 
     @Transactional
-    public SpotResponseDTO.CreateResponse createSpot(SpotRequestDTO.CreateRequest requestDTO, Member member) {
+    public SpotResponseDto.CreateResponse createSpot(SpotRequestDto.CreateRequest requestDTO, Member member) {
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
         Point point = geometryFactory.createPoint(new Coordinate(requestDTO.getLongitude(), requestDTO.getLatitude()));
@@ -71,6 +73,14 @@ public class SpotService {
                 spotTagRepository.save(spotTag);
             });
         }
-        return SpotResponseDTO.CreateResponse.from(savedSpot);
+        return SpotResponseDto.CreateResponse.from(savedSpot);
+    }
+
+    public SpotResponseDto.DetailResponse getSpotDetail(Long spotId) {
+        Spot spot = spotRepository.findById(spotId)
+                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+
+        List<Review> reviews = reviewRepository.findBySpot(spot);
+        return SpotResponseDto.DetailResponse.from(spot, reviews);
     }
 }

@@ -36,6 +36,7 @@ public enum ErrorStatus implements BaseErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "해당하는 사용자를 찾을 수 없습니다."),
 
     //Spot 에러
+    SPOT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4000", "해당하는 스팟을 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
 
     //S3 이미지 에러

@@ -6,12 +6,11 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
 @Builder
-public class SpotRequestDTO {
+public class SpotRequestDto {
 
     @Getter
     @Setter
