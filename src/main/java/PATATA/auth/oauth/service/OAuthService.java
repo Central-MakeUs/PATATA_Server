@@ -1,5 +1,7 @@
 package PATATA.auth.oauth.service;
 
+import PATATA.domain.member.entity.LoginType;
+import PATATA.global.error.exception.MemberHandler;
 import PATATA.global.error.exception.OAuthHandler;
 import PATATA.infra.oauth.apple.ApplePublicKeyGenerator;
 import PATATA.infra.oauth.apple.client.AppleAuthClient;
@@ -29,6 +31,7 @@ import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import static PATATA.global.error.code.status.ErrorStatus.*;
 
@@ -58,17 +61,23 @@ public class OAuthService {
     // 애플 로그인
     @Transactional
     public LoginResponseDTO appleLogin(AppleLoginRequestDTO appleLoginRequestDto) {
+        try {
+            Claims claims = validateAndGetClaims(appleLoginRequestDto.getIdentityToken());
+            String sub = claims.getSubject();
+            String email = claims.get(EMAIL_CLAIM, String.class);
 
-        try{ Claims claims = validateAndGetClaims(appleLoginRequestDto.getIdentityToken());
-        String sub = claims.getSubject();
-        String email = claims.get(EMAIL_CLAIM, String.class);
+            Optional<Member> memberByEmail = memberRepository.findByEmail(email);
+            if (memberByEmail.isPresent()) {
+                Member member = memberByEmail.get();
+                LoginType loginType = member.getLoginType();
+                if (!loginType.equals(LoginType.APPLE)) {
+                    throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
+                }
+                return memberService.createToken(member);
+            }
 
-        Member member = memberRepository.findByAppleSub(sub)
-                .orElseGet(() -> memberRepository.save(
-                        MemberConverter.toAppleMember(sub, email)
-                ));
-
-        return memberService.createToken(member);
+            Member member = memberRepository.save(MemberConverter.toAppleMember(sub, email));
+            return memberService.createToken(member);
         }
         catch (Exception e) {
             log.error("Apple 로그인 실패: ", e);
@@ -93,11 +102,18 @@ public class OAuthService {
         Payload payload = idToken.getPayload();
         String email = payload.getEmail();
 
-        Member member = memberRepository.findByEmail(email)
-                .orElseGet(() -> memberRepository.save(
-                        MemberConverter.toGoogleMember(email)
-                ));
+        Optional<Member> memberByEmail = memberRepository.findByEmail(email);
 
+        if (memberByEmail.isPresent()) {
+            Member member = memberByEmail.get();
+            LoginType loginType = member.getLoginType();
+            if (!loginType.equals(LoginType.GOOGLE)) {
+                throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
+            }
+            return memberService.createToken(member);
+        }
+
+        Member member = memberRepository.save(MemberConverter.toGoogleMember(email));
         return memberService.createToken(member);
     }
 

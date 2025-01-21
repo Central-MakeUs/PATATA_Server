@@ -2,6 +2,7 @@ package PATATA.domain.spot.dto;
 
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
+import PATATA.domain.spot.entity.Tag;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -34,6 +35,7 @@ public class SpotResponseDto {
         private String spotAddressDetail;
         private String categoryName;
         private String memberName;
+        private List<String> tags;
         private List<ReviewInfo> reviews;
 
         @Getter
@@ -44,13 +46,17 @@ public class SpotResponseDto {
             private String reviewText;
         }
 
-        public static DetailResponse from(Spot spot, List<Review> reviews) {
+        public static DetailResponse from(Spot spot, List<Review> reviews, List<Tag> tags) {
             List<ReviewInfo> reviewInfos = reviews.stream()
                     .map(review -> ReviewInfo.builder()
                             .reviewId(review.getReviewId())
                             .reviewText(review.getReviewText())
                             .memberName(review.getMember().getNickName())
                             .build())
+                    .collect(Collectors.toList());
+
+            List<String> tagNames = tags.stream()
+                    .map(Tag::getTagName)
                     .collect(Collectors.toList());
 
             return DetailResponse.builder()
@@ -61,6 +67,7 @@ public class SpotResponseDto {
                     .spotAddressDetail(spot.getSpotAddressDetail())
                     .categoryName(spot.getSpotCategory().getCategoryName())
                     .memberName(spot.getMember().getNickName())
+                    .tags(tagNames)
                     .reviews(reviewInfos)
                     .build();
         }

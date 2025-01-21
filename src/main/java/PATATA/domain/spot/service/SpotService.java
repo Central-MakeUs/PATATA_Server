@@ -81,6 +81,9 @@ public class SpotService {
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
 
         List<Review> reviews = reviewRepository.findBySpot(spot);
-        return SpotResponseDto.DetailResponse.from(spot, reviews);
+        List<Tag> tags = spotTagRepository.findBySpot(spot).stream()
+                .map(SpotTag::getTag)
+                .collect(Collectors.toList());
+        return SpotResponseDto.DetailResponse.from(spot, reviews, tags);
     }
 }
