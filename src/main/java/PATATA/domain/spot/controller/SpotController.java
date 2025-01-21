@@ -41,6 +41,16 @@ public class SpotController {
         return ApiResponse.onSuccess(spotDetails);
     }
 
+    @Operation(summary = "스팟 수정 API")
+    @PatchMapping("/{spot_id}")
+    public ApiResponse<SpotResponseDto.UpdateResponse> updateSpot(
+            @AuthenticationPrincipal Member member,
+            @PathVariable("spot_id") Long spotId,
+            @RequestBody @Valid SpotRequestDto.UpdateRequest requestDTO) {
+        SpotResponseDto.UpdateResponse responseDTO = spotService.updateSpot(spotId, requestDTO, member);
+        return ApiResponse.onSuccess(responseDTO);
+    }
+
 
 //
 //    @Operation(summary = "일지 삭제 API")

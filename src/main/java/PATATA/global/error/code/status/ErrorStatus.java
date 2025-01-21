@@ -40,6 +40,7 @@ public enum ErrorStatus implements BaseErrorCode {
     //Spot 에러
     SPOT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4000", "해당하는 스팟을 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
+    NO_AUTHORIZATION(HttpStatus.BAD_REQUEST, "SPOT4002", "해당하는 스팟에 대한 권한이 없습니다."),
 
     //S3 이미지 에러
     IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMAGE4000", "이미지가 첨부되지 않았습니다."),

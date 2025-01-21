@@ -47,4 +47,12 @@ public class Spot extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    public void updateSpot(String spotName, String spotDescription, String spotAddress, String spotAddressDetail, Category category) {
+        this.spotName = spotName;
+        this.spotDescription = spotDescription;
+        this.spotAddress = spotAddress;
+        this.spotAddressDetail = spotAddressDetail;
+        this.spotCategory = category;
+    }
 }

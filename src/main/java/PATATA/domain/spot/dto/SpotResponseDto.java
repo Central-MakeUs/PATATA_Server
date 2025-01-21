@@ -1,5 +1,6 @@
 package PATATA.domain.spot.dto;
 
+import PATATA.domain.spot.entity.Category;
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.entity.Tag;
@@ -36,6 +37,7 @@ public class SpotResponseDto {
         private String categoryName;
         private String memberName;
         private List<String> tags;
+        private Integer reviewCount;
         private List<ReviewInfo> reviews;
 
         @Getter
@@ -68,22 +70,31 @@ public class SpotResponseDto {
                     .categoryName(spot.getSpotCategory().getCategoryName())
                     .memberName(spot.getMember().getNickName())
                     .tags(tagNames)
+                    .reviewCount(reviewInfos.size())
                     .reviews(reviewInfos)
                     .build();
         }
     }
 
-//    @Getter
-//    @Builder
-//    public static class UpdateResponse {
-//        private Long spotId;
-//        private String spotName;
-//
-//        public static UpdateResponse from(Spot spot) {
-//            return UpdateResponse.builder()
-//                    .spotId(spot.getSpotId())
-//                    .spotName(spot.getSpotName())
-//                    .build();
-//        }
-//    }
+    @Getter
+    @Builder
+    public static class UpdateResponse {
+        private Long spotId;
+        private String spotName;
+        private String spotDescription;
+        private String spotAddress;
+        private String spotAddressDetail;
+        private String categoryName;
+
+        public static UpdateResponse from(Spot spot, Category category) {
+            return UpdateResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotName(spot.getSpotName())
+                    .spotDescription(spot.getSpotDescription())
+                    .spotAddress(spot.getSpotAddress())
+                    .spotAddressDetail(spot.getSpotAddressDetail())
+                    .categoryName(category.getCategoryName())
+                    .build();
+        }
+    }
 }

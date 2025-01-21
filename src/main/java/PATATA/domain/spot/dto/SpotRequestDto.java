@@ -74,4 +74,21 @@ public class SpotRequestDto {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UpdateRequest {
+        @Size(max = 15, message = "스팟 이름은 15자를 초과할 수 없습니다.")
+        private String spotName;
+
+        @Size(max = 100, message = "스팟 설명은 100자를 초과할 수 없습니다.")
+        private String spotDescription;
+
+        private String spotAddress;
+
+        private String spotAddressDetail;
+
+        private Long categoryId;
+    }
+
 }

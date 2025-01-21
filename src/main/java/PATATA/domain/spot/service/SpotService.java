@@ -17,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static PATATA.global.error.code.status.ErrorStatus.CATEGORY_NOT_FOUND;
-import static PATATA.global.error.code.status.ErrorStatus.SPOT_NOT_FOUND;
+import static PATATA.global.error.code.status.ErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -85,5 +84,27 @@ public class SpotService {
                 .map(SpotTag::getTag)
                 .collect(Collectors.toList());
         return SpotResponseDto.DetailResponse.from(spot, reviews, tags);
+    }
+
+    @Transactional
+    public SpotResponseDto.UpdateResponse updateSpot(Long spotId, SpotRequestDto.UpdateRequest request, Member member) {
+        Spot spot = spotRepository.findById(spotId)
+                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+
+        if (!spot.getMember().getMemberId().equals(member.getMemberId())) {
+            throw new SpotHandler(NO_AUTHORIZATION);
+        }
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
+
+        spot.updateSpot(
+                request.getSpotName(),
+                request.getSpotDescription(),
+                request.getSpotAddress(),
+                request.getSpotAddressDetail(),
+                category
+        );
+        return SpotResponseDto.UpdateResponse.from(spot, category);
     }
 }
