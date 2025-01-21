@@ -6,12 +6,11 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.*;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
 @Builder
-public class SpotRequestDTO {
+public class SpotRequestDto {
 
     @Getter
     @Setter
@@ -73,6 +72,23 @@ public class SpotRequestDTO {
             this.isRepresentative = isRepresentative;
             this.sequence = sequence;
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UpdateRequest {
+        @Size(max = 15, message = "스팟 이름은 15자를 초과할 수 없습니다.")
+        private String spotName;
+
+        @Size(max = 100, message = "스팟 설명은 100자를 초과할 수 없습니다.")
+        private String spotDescription;
+
+        private String spotAddress;
+
+        private String spotAddressDetail;
+
+        private Long categoryId;
     }
 
 }

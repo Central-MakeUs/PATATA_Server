@@ -2,6 +2,7 @@ package PATATA.domain.member.converter;
 
 import PATATA.domain.member.entity.LoginType;
 import PATATA.domain.member.entity.Member;
+import PATATA.domain.member.entity.Role;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 public class MemberConverter {
     public static Member toAppleMember(String sub, String email) {
         return Member.builder()
+                .role(Role.USER)
                 .email(email)
                 .nickName("랜덤 생성") // 닉네임 가져오기
                 .appleSub(sub)
@@ -20,6 +22,7 @@ public class MemberConverter {
     }
     public static Member toGoogleMember(String email) {
         return Member.builder()
+                .role(Role.USER)
                 .email(email)
                 .nickName("랜덤 생성")
                 .loginType(LoginType.GOOGLE)

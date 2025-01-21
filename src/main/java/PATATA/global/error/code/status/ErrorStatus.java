@@ -28,15 +28,20 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_APPLE_ID_TOKEN_INFO(HttpStatus.UNAUTHORIZED, "OAUTH4001", "APPLE identityToken 값의 alg, kid 정보가 올바르지 않습니다."),
     APPLE_ID_TOKEN_EMPTY(HttpStatus.UNAUTHORIZED, "OAUTH4002", "APPLE ID TOKEN 값이 비어 있습니다."),
     APPLE_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "OAUTH4003", "APPLE LOGIN 실패"),
+
     INVALID_GOOGLE_ID_TOKEN(HttpStatus.UNAUTHORIZED, "OAUTH4004", "GOOGLE ID TOKEN 값이 올바르지 않습니다."),
     TOKEN_VALIDATION_FAILED(HttpStatus.UNAUTHORIZED, "OAUTH4005", "GOOGLE ID TOKEN 검증에 실패했습니다."),
     GOOGLE_ID_TOKEN_EMPTY(HttpStatus.UNAUTHORIZED, "OAUTH4006", "GOOGLE ID TOKEN 값이 비어 있습니다."),
 
     //Member 에러
-    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "해당하는 사용자를 찾을 수 없습니다."),
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4000", "해당하는 사용자를 찾을 수 없습니다."),
+    MEMBER_EXIST_IN_OTHER_SOCIAL(HttpStatus.BAD_REQUEST, "MEMBER4001", "이미 다른 "),
 
     //Spot 에러
+    SPOT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4000", "삭제되었거나 존재하지 않는 스팟입니다."),
     CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
+    NO_AUTHORIZATION(HttpStatus.BAD_REQUEST, "SPOT4002", "해당하는 스팟에 대한 권한이 없습니다."),
+    SPOT_ALREADY_DELETE(HttpStatus.BAD_REQUEST, "SPOT4003", "이미 삭제된 스팟입니다."),
 
     //S3 이미지 에러
     IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMAGE4000", "이미지가 첨부되지 않았습니다."),
