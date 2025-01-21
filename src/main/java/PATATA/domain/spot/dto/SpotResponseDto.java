@@ -4,8 +4,10 @@ import PATATA.domain.spot.entity.Category;
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.entity.Tag;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,16 +15,14 @@ import java.util.stream.Collectors;
 public class SpotResponseDto {
 
     @Getter
-    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class CreateResponse {
         private Long spotId;
         private String spotName;
 
         public static CreateResponse from(Spot spot) {
-            return CreateResponse.builder()
-                    .spotId(spot.getSpotId())
-                    .spotName(spot.getSpotName())
-                    .build();
+            return new CreateResponse(spot.getSpotId(), spot.getSpotName());
         }
     }
 
@@ -77,7 +77,8 @@ public class SpotResponseDto {
     }
 
     @Getter
-    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class UpdateResponse {
         private Long spotId;
         private String spotName;
@@ -87,14 +88,20 @@ public class SpotResponseDto {
         private String categoryName;
 
         public static UpdateResponse from(Spot spot, Category category) {
-            return UpdateResponse.builder()
-                    .spotId(spot.getSpotId())
-                    .spotName(spot.getSpotName())
-                    .spotDescription(spot.getSpotDescription())
-                    .spotAddress(spot.getSpotAddress())
-                    .spotAddressDetail(spot.getSpotAddressDetail())
-                    .categoryName(category.getCategoryName())
-                    .build();
+            return new UpdateResponse(spot.getSpotId(), spot.getSpotName(), spot.getSpotDescription(), spot.getSpotAddress(), spot.getSpotAddressDetail(), category.getCategoryName());
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DeleteResponse {
+        private Long spotId;
+        private String message;
+
+        public static DeleteResponse of(Long spotId) {
+            return new DeleteResponse(spotId, "스팟이 성공적으로 삭제되었습니다.");
+        }
+    }
+
 }

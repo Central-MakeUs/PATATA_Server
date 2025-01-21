@@ -22,7 +22,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponseDto createReview(ReviewRequestDto requestDto, Member member) {
-        Spot spot = spotRepository.findById(requestDto.getSpotId())
+        Spot spot = spotRepository.findByIdAndDeletedFalse(requestDto.getSpotId())
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
 
         Review review = Review.builder()

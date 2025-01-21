@@ -51,14 +51,13 @@ public class SpotController {
         return ApiResponse.onSuccess(responseDTO);
     }
 
-
-//
-//    @Operation(summary = "일지 삭제 API")
-//    @DeleteMapping("/{record_id}")
-//    public ApiResponse<RecordResponseDTO.DeleteResultDTO> deleteRecord(
-//            @PathVariable("record_id") Long record_id
-//    ) {
-//        RecordResponseDTO.DeleteResultDTO deleteResultDTO = recordService.deleteRecord(record_id);
-//        return ApiResponse.onSuccess(deleteResultDTO);
-//    }
+    @Operation(summary = "스팟 삭제 API")
+    @DeleteMapping("/{spot_id}")
+    public ApiResponse<SpotResponseDto.DeleteResponse> deleteSpot(
+            @AuthenticationPrincipal Member member,
+            @PathVariable("spot_id") Long spotId
+    ) {
+        SpotResponseDto.DeleteResponse responseDTO = spotService.deleteSpot(spotId, member);
+        return ApiResponse.onSuccess(responseDTO);
+    }
 }

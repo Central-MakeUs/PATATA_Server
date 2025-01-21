@@ -76,7 +76,7 @@ public class SpotService {
     }
 
     public SpotResponseDto.DetailResponse getSpotDetail(Long spotId) {
-        Spot spot = spotRepository.findById(spotId)
+        Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
 
         List<Review> reviews = reviewRepository.findBySpot(spot);
@@ -88,7 +88,7 @@ public class SpotService {
 
     @Transactional
     public SpotResponseDto.UpdateResponse updateSpot(Long spotId, SpotRequestDto.UpdateRequest request, Member member) {
-        Spot spot = spotRepository.findById(spotId)
+        Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
 
         if (!spot.getMember().getMemberId().equals(member.getMemberId())) {
@@ -106,5 +106,22 @@ public class SpotService {
                 category
         );
         return SpotResponseDto.UpdateResponse.from(spot, category);
+    }
+
+    @Transactional
+    public SpotResponseDto.DeleteResponse deleteSpot(Long spotId, Member member) {
+        Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
+                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+
+        if (!spot.getMember().getMemberId().equals(member.getMemberId())) {
+            throw new SpotHandler(NO_AUTHORIZATION);
+        }
+
+        if (spot.isDeleted()) {
+            throw new SpotHandler(SPOT_ALREADY_DELETE);
+        }
+
+        spot.delete();
+        return SpotResponseDto.DeleteResponse.of(spotId);
     }
 }
