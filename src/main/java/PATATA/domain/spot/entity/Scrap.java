@@ -25,4 +25,15 @@ public class Scrap extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
+
+    public void delete() {
+        this.deleted = true;
+    }
+
+    public void restore() {
+        this.deleted = false;
+    }
 }

@@ -13,7 +13,7 @@ public class MemberConverter {
         return Member.builder()
                 .role(Role.USER)
                 .email(email)
-                .nickName("랜덤 생성") // 닉네임 가져오기
+                .nickName(null) // 닉네임 가져오기
                 .appleSub(sub)
                 .loginType(LoginType.APPLE)
                 .refreshToken("") // 초기 빈 값 설정
@@ -24,7 +24,7 @@ public class MemberConverter {
         return Member.builder()
                 .role(Role.USER)
                 .email(email)
-                .nickName("랜덤 생성")
+                .nickName(null)
                 .loginType(LoginType.GOOGLE)
                 .refreshToken("") // 초기 빈 값 설정
                 .refreshTokenExpiresAt(LocalDateTime.now()) // 초기 시간 설정

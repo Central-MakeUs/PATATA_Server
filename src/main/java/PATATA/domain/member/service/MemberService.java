@@ -10,8 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static PATATA.global.error.code.status.ErrorStatus.MEMBER_NOT_FOUND;
-import static PATATA.global.error.code.status.ErrorStatus.REFRESH_TOKEN_UNAUTHORIZED;
+import static PATATA.global.error.code.status.ErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -59,5 +58,17 @@ public class MemberService {
                 .orElseThrow(() -> new MemberHandler(MEMBER_NOT_FOUND));
 
         member.refreshTokenExpires();
+    }
+
+    @Transactional
+    public void updateNickname(Member member, String newNickname) {
+        // 닉네임 중복 검사
+        if (!member.getNickName().equals(newNickname)) {  //본인이 사용 중인 닉네임이 아닌 경우
+            if (memberRepository.existsByNickName(newNickname)) {
+                throw new MemberHandler(NICKNAME_ALREADY_EXIST);
+            }
+        }
+        // 닉네임 업데이트
+        member.updateNickname(newNickname);
     }
 }
