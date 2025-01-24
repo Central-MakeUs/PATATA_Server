@@ -9,10 +9,11 @@ import PATATA.domain.spot.repository.*;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.geolatte.geom.M;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class SpotService {
     private final SpotImageRepository spotImageRepository;
     private final ReviewRepository reviewRepository;
     private final S3ImageService s3Service;
+    private final ScrapRepository scrapRepository;
 
     @Transactional
     public SpotResponseDto.CreateResponse createSpot(SpotRequestDto.CreateRequest requestDTO, Member member) {
@@ -128,5 +130,20 @@ public class SpotService {
 
         spot.delete();
         return SpotResponseDto.DeleteResponse.of(spotId);
+    }
+
+    public Page<SpotResponseDto.SearchResponse> searchSpotsByName(String spotName, Pageable pageable, Member member) {
+        return spotRepository.findBySpotNameContainingAndDeletedFalse(spotName, pageable)
+                .map(spot -> {
+                        List<SpotImage> images = spotImageRepository.findBySpot(spot);
+                        String representativeImageUrl = images.stream()
+                                .filter(SpotImage::getIsRepresentative)
+                                .findFirst()
+                                .map(SpotImage::getImageUrl)
+                                .orElse(null);
+                        Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
+                        Integer reviews = reviewRepository.findBySpot(spot).size();
+                    return SpotResponseDto.SearchResponse.from(spot, representativeImageUrl, isScraped, reviews);
+                });
     }
 }

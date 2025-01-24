@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -60,5 +63,19 @@ public class SpotController {
     ) {
         SpotResponseDto.DeleteResponse responseDTO = spotService.deleteSpot(spotId, member);
         return ApiResponse.onSuccess(responseDTO);
+    }
+
+    @Operation(summary = "스팟 검색 API")
+    @GetMapping("/search")
+    public ApiResponse<SpotResponseDto.SearchListResponse> searchSpot(
+            @RequestParam("spotName") String spotName,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @AuthenticationPrincipal Member member
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SpotResponseDto.SearchResponse> searchResults = spotService.searchSpotsByName(spotName, pageable, member);
+        return ApiResponse.onSuccess(SpotResponseDto.SearchListResponse.of(searchResults));
+
     }
 }

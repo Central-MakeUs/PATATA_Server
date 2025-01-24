@@ -1,5 +1,6 @@
 package PATATA.domain.spot.dto;
 
+import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.entity.Category;
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
@@ -8,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -105,5 +107,48 @@ public class SpotResponseDto {
             return new DeleteResponse(spotId, "스팟이 성공적으로 삭제되었습니다.");
         }
     }
+
+    @Getter
+    @Builder
+    public static class SearchListResponse {
+        private long totalCount;
+        private List<SearchResponse> spots;
+
+        public static SearchListResponse of(Page<SearchResponse> spots) {
+            return SearchListResponse.builder()
+                    .totalCount(spots.getTotalElements())
+                    .spots(spots.getContent())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class SearchResponse {
+        private Long spotId;
+        private String spotName;
+        private Double latitude;
+        private Double longitude;
+        private String imageUrl;
+        private Integer spotScraps;
+        private Boolean isScraped;    // 현재 사용자의 스크랩 여부
+        private Integer reviews;
+
+        public static SearchResponse from(Spot spot, String imageUrl, Boolean isScraped, Integer reviews) {
+
+            return SearchResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotName(spot.getSpotName())
+                    .latitude(spot.getSpotLocation().getX())
+                    .longitude(spot.getSpotLocation().getY())
+                    .imageUrl(imageUrl)
+                    .spotScraps(spot.getSpotScraps())
+                    .isScraped(isScraped)
+                    .reviews(reviews)
+                    .build();
+        }
+    }
+
+
 
 }
