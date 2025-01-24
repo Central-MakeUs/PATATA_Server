@@ -35,13 +35,16 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //Member 에러
     MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4000", "해당하는 사용자를 찾을 수 없습니다."),
-    MEMBER_EXIST_IN_OTHER_SOCIAL(HttpStatus.BAD_REQUEST, "MEMBER4001", "이미 다른 "),
+    NICKNAME_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4001", "이미 사용중인 닉네임입니다."),
 
     //Spot 에러
     SPOT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4000", "삭제되었거나 존재하지 않는 스팟입니다."),
     CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
     NO_AUTHORIZATION(HttpStatus.BAD_REQUEST, "SPOT4002", "해당하는 스팟에 대한 권한이 없습니다."),
     SPOT_ALREADY_DELETE(HttpStatus.BAD_REQUEST, "SPOT4003", "이미 삭제된 스팟입니다."),
+
+    //Scrap 에러
+    SCRAP_FAIL(HttpStatus.BAD_REQUEST, "SCRAP4000", "스크랩에 실패하였습니다."),
 
     //S3 이미지 에러
     IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMAGE4000", "이미지가 첨부되지 않았습니다."),

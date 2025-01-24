@@ -8,6 +8,8 @@ import PATATA.domain.spot.entity.*;
 import PATATA.domain.spot.repository.*;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.geolatte.geom.M;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 import static PATATA.global.error.code.status.ErrorStatus.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SpotService {
 
@@ -75,15 +78,17 @@ public class SpotService {
         return SpotResponseDto.CreateResponse.from(savedSpot);
     }
 
-    public SpotResponseDto.DetailResponse getSpotDetail(Long spotId) {
+    public SpotResponseDto.DetailResponse getSpotDetail(Long spotId, Member member) {
         Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
-
+        Boolean isAuthor = spot.getMember().getMemberId().equals(member.getMemberId());
+        log.info(String.valueOf(spot.getMember().getMemberId()));
+        log.info(String.valueOf(member.getMemberId()));
         List<Review> reviews = reviewRepository.findBySpot(spot);
         List<Tag> tags = spotTagRepository.findBySpot(spot).stream()
                 .map(SpotTag::getTag)
                 .collect(Collectors.toList());
-        return SpotResponseDto.DetailResponse.from(spot, reviews, tags);
+        return SpotResponseDto.DetailResponse.from(spot, isAuthor, reviews, tags);
     }
 
     @Transactional

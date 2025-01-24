@@ -62,4 +62,17 @@ public class Spot extends BaseEntity {
         this.spotAddressDetail = spotAddressDetail;
         this.spotCategory = category;
     }
+
+    public void incrementScrapCount() {
+        if (this.spotScraps == null) {
+            this.spotScraps = 0;
+        }
+        this.spotScraps++;
+    }
+
+    public void decrementScrapCount() {
+        if (this.spotScraps != null && this.spotScraps > 0) {
+            this.spotScraps--;
+        }
+    }
 }

@@ -35,9 +35,10 @@ public class SpotController {
     @Operation(summary = "스팟 상세 조회 API")
     @GetMapping("/{spot_id}")
     public ApiResponse<SpotResponseDto.DetailResponse> getRecordDetails(
-            @PathVariable("spot_id") Long spotId
-    ) {
-        SpotResponseDto.DetailResponse spotDetails = spotService.getSpotDetail(spotId);
+            @PathVariable("spot_id") Long spotId,
+            @AuthenticationPrincipal Member member
+            ) {
+        SpotResponseDto.DetailResponse spotDetails = spotService.getSpotDetail(spotId, member);
         return ApiResponse.onSuccess(spotDetails);
     }
 

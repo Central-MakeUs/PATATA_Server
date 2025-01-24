@@ -30,6 +30,7 @@ public class SpotResponseDto {
     @Builder
     public static class DetailResponse {
         private Long spotId;
+        private Boolean isAuthor;
         private String spotName;
         private String spotDescription;
         private String spotAddress;
@@ -48,7 +49,7 @@ public class SpotResponseDto {
             private String reviewText;
         }
 
-        public static DetailResponse from(Spot spot, List<Review> reviews, List<Tag> tags) {
+        public static DetailResponse from(Spot spot, Boolean isAuthor, List<Review> reviews, List<Tag> tags) {
             List<ReviewInfo> reviewInfos = reviews.stream()
                     .map(review -> ReviewInfo.builder()
                             .reviewId(review.getReviewId())
@@ -63,6 +64,7 @@ public class SpotResponseDto {
 
             return DetailResponse.builder()
                     .spotId(spot.getSpotId())
+                    .isAuthor(isAuthor)
                     .spotName(spot.getSpotName())
                     .spotDescription(spot.getSpotDescription())
                     .spotAddress(spot.getSpotAddress())
