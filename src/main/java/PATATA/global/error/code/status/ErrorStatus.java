@@ -44,6 +44,10 @@ public enum ErrorStatus implements BaseErrorCode {
     SPOT_ALREADY_DELETE(HttpStatus.BAD_REQUEST, "SPOT4003", "이미 삭제된 스팟입니다."),
     INVALID_SORT_TYPE(HttpStatus.BAD_REQUEST, "SPOT4004", "잘못된 정렬명입니다."),
 
+    //Review 에러
+    REVIEW_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4000", "해당하는 리뷰를 찾을 수 없습니다."),
+    NOT_REVIEW_OWNER(HttpStatus.BAD_REQUEST, "REVIEW4000", "해당하는 리뷰의 작성자가 아닙니다."),
+
     //Scrap 에러
     SCRAP_FAIL(HttpStatus.BAD_REQUEST, "SCRAP4000", "스크랩에 실패하였습니다."),
 

@@ -90,5 +90,4 @@ public class SpotRequestDto {
 
         private Long categoryId;
     }
-
 }
