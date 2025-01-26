@@ -2,6 +2,7 @@ package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.converter.SpotConverter;
+import PATATA.domain.spot.dto.ScrapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
 import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.entity.*;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static PATATA.global.error.code.status.ErrorStatus.*;
@@ -146,5 +148,26 @@ public class SpotService {
                     .map(result -> spotConverter.toSearchResponse(result, member));
         }
         throw new SpotHandler(INVALID_SORT_TYPE);
+    }
+
+    public List<ScrapResponseDto.SpotDto> getMySpots(Member member) {
+        List<Spot> mySpots = spotRepository.findAllByMemberOrderByCreatedAtDesc(member);
+        return mySpots.stream()
+                .filter(spot -> !spot.isDeleted())
+                .map(spot -> {
+                    List<SpotImage> images = spotImageRepository.findBySpot(spot);
+                    String representativeImageUrl = images.stream()
+                            .filter(SpotImage::getIsRepresentative)
+                            .findFirst()
+                            .map(SpotImage::getImageUrl)
+                            .orElse(null);
+
+                    return ScrapResponseDto.SpotDto.builder()
+                            .spotId(spot.getSpotId())
+                            .spotName(spot.getSpotName())
+                            .representativeImageUrl(representativeImageUrl)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

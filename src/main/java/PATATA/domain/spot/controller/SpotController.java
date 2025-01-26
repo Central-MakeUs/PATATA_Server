@@ -1,6 +1,7 @@
 package PATATA.domain.spot.controller;
 
 import PATATA.domain.member.entity.Member;
+import PATATA.domain.spot.dto.ScrapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
 import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.service.SpotService;
@@ -16,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/spot")
@@ -81,5 +84,14 @@ public class SpotController {
                 spotName, latitude, longitude, sortBy, pageable, member);
         return ApiResponse.onSuccess(SpotResponseDto.SearchListResponse.of(searchResults));
 
+    }
+
+    @Operation(summary = "내가 작성한 스팟 조회 API")
+    @GetMapping("/my-spots")
+    public ApiResponse<List<ScrapResponseDto.SpotDto>> getMySpots(
+            @AuthenticationPrincipal Member member
+    ) {
+        List<ScrapResponseDto.SpotDto> mySpots = spotService.getMySpots(member);
+        return ApiResponse.onSuccess(mySpots);
     }
 }

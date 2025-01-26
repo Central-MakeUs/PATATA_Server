@@ -1,5 +1,6 @@
 package PATATA.domain.spot.repository;
 
+import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.entity.Spot;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SpotRepository extends JpaRepository<Spot, Long> {
@@ -46,4 +48,6 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("userLocation") Point userLocation,
             Pageable pageable
     );
+
+    List<Spot> findAllByMemberOrderByCreatedAtDesc(Member member);
 }
