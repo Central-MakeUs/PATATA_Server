@@ -71,10 +71,14 @@ public class SpotController {
             @RequestParam("spotName") String spotName,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "latitude") Double latitude,
+            @RequestParam(value = "longitude") Double longitude,
+            @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
             @AuthenticationPrincipal Member member
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<SpotResponseDto.SearchResponse> searchResults = spotService.searchSpotsByName(spotName, pageable, member);
+        Page<SpotResponseDto.SearchResponse> searchResults = spotService.searchSpotsByName(
+                spotName, latitude, longitude, sortBy, pageable, member);
         return ApiResponse.onSuccess(SpotResponseDto.SearchListResponse.of(searchResults));
 
     }

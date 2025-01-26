@@ -127,24 +127,22 @@ public class SpotResponseDto {
     public static class SearchResponse {
         private Long spotId;
         private String spotName;
-        private Double latitude;
-        private Double longitude;
         private String imageUrl;
-        private Integer spotScraps;
+        private Integer spotScraps;   // 스크랩 수
         private Boolean isScraped;    // 현재 사용자의 스크랩 여부
         private Integer reviews;
+        private Double distance;
 
-        public static SearchResponse from(Spot spot, String imageUrl, Boolean isScraped, Integer reviews) {
+        public static SearchResponse from(Spot spot, String imageUrl, Boolean isScraped, Integer reviews, Double distance) {
 
             return SearchResponse.builder()
                     .spotId(spot.getSpotId())
                     .spotName(spot.getSpotName())
-                    .latitude(spot.getSpotLocation().getX())
-                    .longitude(spot.getSpotLocation().getY())
                     .imageUrl(imageUrl)
                     .spotScraps(spot.getSpotScraps())
                     .isScraped(isScraped)
                     .reviews(reviews)
+                    .distance(distance)
                     .build();
         }
     }

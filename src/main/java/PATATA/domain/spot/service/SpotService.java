@@ -35,7 +35,7 @@ public class SpotService {
     private final SpotImageRepository spotImageRepository;
     private final ReviewRepository reviewRepository;
     private final S3ImageService s3Service;
-    private final ScrapRepository scrapRepository;
+    private final SpotConverter spotConverter;
 
     @Transactional
     public SpotResponseDto.CreateResponse createSpot(SpotRequestDto.CreateRequest requestDTO, Member member) {
@@ -132,18 +132,19 @@ public class SpotService {
         return SpotResponseDto.DeleteResponse.of(spotId);
     }
 
-    public Page<SpotResponseDto.SearchResponse> searchSpotsByName(String spotName, Pageable pageable, Member member) {
-        return spotRepository.findBySpotNameContainingAndDeletedFalse(spotName, pageable)
-                .map(spot -> {
-                        List<SpotImage> images = spotImageRepository.findBySpot(spot);
-                        String representativeImageUrl = images.stream()
-                                .filter(SpotImage::getIsRepresentative)
-                                .findFirst()
-                                .map(SpotImage::getImageUrl)
-                                .orElse(null);
-                        Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
-                        Integer reviews = reviewRepository.findBySpot(spot).size();
-                    return SpotResponseDto.SearchResponse.from(spot, representativeImageUrl, isScraped, reviews);
-                });
+    //스팟 검색(정렬 포함)
+    public Page<SpotResponseDto.SearchResponse> searchSpotsByName(String spotName, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
+        // 사용자 위치 Point 객체 생성
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+
+        if (sortBy.equals("DISTANCE")) {
+            return spotRepository.findNearbySpotsWithDistance(spotName, userLocation, pageable)
+                    .map(result -> spotConverter.toSearchResponse(result, member));
+        } else if (sortBy.equals("RECOMMEND")) {
+            return spotRepository.findBySpotNameWithDistanceOrderByScrap(spotName, userLocation, pageable)
+                    .map(result -> spotConverter.toSearchResponse(result, member));
+        }
+        throw new SpotHandler(INVALID_SORT_TYPE);
     }
 }

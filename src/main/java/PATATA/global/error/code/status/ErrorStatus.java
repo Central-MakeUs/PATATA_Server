@@ -42,6 +42,7 @@ public enum ErrorStatus implements BaseErrorCode {
     CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
     NO_AUTHORIZATION(HttpStatus.BAD_REQUEST, "SPOT4002", "해당하는 스팟에 대한 권한이 없습니다."),
     SPOT_ALREADY_DELETE(HttpStatus.BAD_REQUEST, "SPOT4003", "이미 삭제된 스팟입니다."),
+    INVALID_SORT_TYPE(HttpStatus.BAD_REQUEST, "SPOT4004", "잘못된 정렬명입니다."),
 
     //Scrap 에러
     SCRAP_FAIL(HttpStatus.BAD_REQUEST, "SCRAP4000", "스크랩에 실패하였습니다."),
