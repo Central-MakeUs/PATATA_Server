@@ -1,5 +1,6 @@
 package PATATA.domain.spot.dto;
 
+import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.entity.Category;
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
@@ -8,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -106,4 +108,85 @@ public class SpotResponseDto {
         }
     }
 
+    @Getter
+    @Builder
+    public static class SearchListResponse {
+        private long totalCount;
+        private List<SearchResponse> spots;
+
+        public static SearchListResponse of(Page<SearchResponse> spots) {
+            return SearchListResponse.builder()
+                    .totalCount(spots.getTotalElements())
+                    .spots(spots.getContent())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class SearchResponse {
+        private Long spotId;
+        private String spotName;
+        private String imageUrl;
+        private Integer spotScraps;   // 스크랩 수
+        private Boolean isScraped;    // 현재 사용자의 스크랩 여부
+        private Integer reviews;
+        private Double distance;
+
+        public static SearchResponse from(Spot spot, String imageUrl, Boolean isScraped, Integer reviews, Double distance) {
+
+            return SearchResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotName(spot.getSpotName())
+                    .imageUrl(imageUrl)
+                    .spotScraps(spot.getSpotScraps())
+                    .isScraped(isScraped)
+                    .reviews(reviews)
+                    .distance(distance)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class CategoryListResponse {
+        private long totalCount;
+        private List<CategoryResponse> spots;
+
+        public static CategoryListResponse of(Page<CategoryResponse> spots) {
+            return CategoryListResponse.builder()
+                    .totalCount(spots.getTotalElements())
+                    .spots(spots.getContent())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class CategoryResponse {
+        private Long spotId;
+        private String spotAddress;
+        private String spotName;
+        private String category;
+        private String imageUrl;
+        private Integer reviews;
+        private Integer spotScraps;   // 스크랩 수
+        private Boolean isScraped;    // 현재 사용자의 스크랩 여부
+        private List<String> tags;
+
+        public static CategoryResponse from(Spot spot, String imageUrl, Boolean isScraped, Integer reviews, List<String> tags) {
+
+            return CategoryResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotAddress(spot.getSpotAddress())
+                    .spotName(spot.getSpotName())
+                    .category(spot.getSpotCategory().getCategoryName())
+                    .imageUrl(imageUrl)
+                    .spotScraps(spot.getSpotScraps())
+                    .isScraped(isScraped)
+                    .reviews(reviews)
+                    .tags(tags)
+                    .build();
+        }
+    }
 }

@@ -7,12 +7,13 @@ import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.repository.ReviewRepository;
 import PATATA.domain.spot.repository.SpotRepository;
+import PATATA.global.error.exception.ReviewHandler;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static PATATA.global.error.code.status.ErrorStatus.SPOT_NOT_FOUND;
+import static PATATA.global.error.code.status.ErrorStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +33,15 @@ public class ReviewService {
                 .build();
         Review savedReview = reviewRepository.save(review);
         return new ReviewResponseDto(savedReview.getReviewId(), savedReview.getReviewText());
+    }
+
+    @Transactional
+    public void deleteReview(Long reviewId, Member member) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewHandler(REVIEW_NOT_FOUND));
+        if (!review.getMember().getMemberId().equals(member.getMemberId())) {
+            throw new ReviewHandler(NOT_REVIEW_OWNER);
+        }
+        reviewRepository.delete(review);
     }
 }

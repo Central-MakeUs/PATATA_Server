@@ -2,6 +2,7 @@ package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.converter.SpotConverter;
+import PATATA.domain.spot.dto.ScrapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
 import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.entity.*;
@@ -9,14 +10,17 @@ import PATATA.domain.spot.repository.*;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.geolatte.geom.M;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static PATATA.global.error.code.status.ErrorStatus.*;
@@ -34,6 +38,7 @@ public class SpotService {
     private final SpotImageRepository spotImageRepository;
     private final ReviewRepository reviewRepository;
     private final S3ImageService s3Service;
+    private final SpotConverter spotConverter;
 
     @Transactional
     public SpotResponseDto.CreateResponse createSpot(SpotRequestDto.CreateRequest requestDTO, Member member) {
@@ -128,5 +133,59 @@ public class SpotService {
 
         spot.delete();
         return SpotResponseDto.DeleteResponse.of(spotId);
+    }
+
+    //스팟 검색(정렬 포함)
+    public Page<SpotResponseDto.SearchResponse> searchSpotsByName(String spotName, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
+        // 사용자 위치 Point 객체 생성
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+
+        if (sortBy.equals("DISTANCE")) {
+            return spotRepository.findNearbySpotsWithDistance(spotName, userLocation, pageable)
+                    .map(result -> spotConverter.toSearchResponse(result, member));
+        } else if (sortBy.equals("RECOMMEND")) {
+            return spotRepository.findBySpotNameWithDistanceOrderByScrap(spotName, userLocation, pageable)
+                    .map(result -> spotConverter.toSearchResponse(result, member));
+        }
+        throw new SpotHandler(INVALID_SORT_TYPE);
+    }
+
+    public List<ScrapResponseDto.SpotDto> getMySpots(Member member) {
+        List<Spot> mySpots = spotRepository.findAllByMemberOrderByCreatedAtDesc(member);
+        return mySpots.stream()
+                .filter(spot -> !spot.isDeleted())
+                .map(spot -> {
+                    List<SpotImage> images = spotImageRepository.findBySpot(spot);
+                    String representativeImageUrl = images.stream()
+                            .filter(SpotImage::getIsRepresentative)
+                            .findFirst()
+                            .map(SpotImage::getImageUrl)
+                            .orElse(null);
+
+                    return ScrapResponseDto.SpotDto.builder()
+                            .spotId(spot.getSpotId())
+                            .spotName(spot.getSpotName())
+                            .representativeImageUrl(representativeImageUrl)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    public Page<SpotResponseDto.CategoryResponse> getSpotsByCategory(Long categoryId, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
+
+        // 사용자 위치 Point 객체 생성
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+
+        if (sortBy.equals("DISTANCE")) {
+            return spotRepository.findByCategoryOrderByDistance(category.getCategoryId(), userLocation, pageable)
+                    .map(result -> spotConverter.toCategoryResponse(result, member));
+        } else if (sortBy.equals("RECOMMEND")) {
+            return spotRepository.findByCategoryOrderByScrap(category.getCategoryId(), userLocation, pageable)
+                    .map(result -> spotConverter.toCategoryResponse(result, member));
+        }
+        throw new SpotHandler(INVALID_SORT_TYPE);
     }
 }

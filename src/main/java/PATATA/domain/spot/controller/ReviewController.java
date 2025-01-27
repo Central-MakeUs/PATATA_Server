@@ -11,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/review")
@@ -33,5 +30,15 @@ public class ReviewController {
     ) {
         ReviewResponseDto responseDto = reviewService.createReview(requestDto, member);
         return ApiResponse.onSuccess(responseDto);
+    }
+
+    @Operation(summary = "리뷰 삭제 API")
+    @DeleteMapping("/delete/{review_id}")
+    public ApiResponse<Void> deleteReview(
+            @AuthenticationPrincipal Member member,
+            @PathVariable("review_id") Long reviewId
+    ) {
+        reviewService.deleteReview(reviewId, member);
+        return ApiResponse.onSuccess(null);
     }
 }

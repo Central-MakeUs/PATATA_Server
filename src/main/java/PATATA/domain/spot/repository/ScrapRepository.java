@@ -15,4 +15,6 @@ public interface ScrapRepository extends JpaRepository<Scrap, Long> {
     Optional<Scrap> findBySpotAndMember(Spot spot, Member member);
 
     List<Scrap> findByMemberAndDeletedFalse(Member member);
+
+    boolean existsByMemberAndSpotAndDeletedFalse(Member member, Spot spot);
 }
