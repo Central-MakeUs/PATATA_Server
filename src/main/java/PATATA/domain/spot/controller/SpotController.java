@@ -94,4 +94,21 @@ public class SpotController {
         List<ScrapResponseDto.SpotDto> mySpots = spotService.getMySpots(member);
         return ApiResponse.onSuccess(mySpots);
     }
+
+    @Operation(summary = "카테고리별 스팟 조회 API")
+    @GetMapping("/category/{category_id}")
+    public ApiResponse<SpotResponseDto.CategoryListResponse> getSpotsByCategory(
+            @PathVariable("category_id") Long categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "latitude") Double latitude,
+            @RequestParam(value = "longitude") Double longitude,
+            @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
+            @AuthenticationPrincipal Member member
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SpotResponseDto.CategoryResponse> categoryResults = spotService.getSpotsByCategory(
+                categoryId, latitude, longitude, sortBy, pageable, member);
+        return ApiResponse.onSuccess(SpotResponseDto.CategoryListResponse.of(categoryResults));
+    }
 }

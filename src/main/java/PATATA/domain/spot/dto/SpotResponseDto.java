@@ -147,6 +147,46 @@ public class SpotResponseDto {
         }
     }
 
+    @Getter
+    @Builder
+    public static class CategoryListResponse {
+        private long totalCount;
+        private List<CategoryResponse> spots;
 
+        public static CategoryListResponse of(Page<CategoryResponse> spots) {
+            return CategoryListResponse.builder()
+                    .totalCount(spots.getTotalElements())
+                    .spots(spots.getContent())
+                    .build();
+        }
+    }
 
+    @Getter
+    @Builder
+    public static class CategoryResponse {
+        private Long spotId;
+        private String spotAddress;
+        private String spotName;
+        private String category;
+        private String imageUrl;
+        private Integer reviews;
+        private Integer spotScraps;   // 스크랩 수
+        private Boolean isScraped;    // 현재 사용자의 스크랩 여부
+        private List<String> tags;
+
+        public static CategoryResponse from(Spot spot, String imageUrl, Boolean isScraped, Integer reviews, List<String> tags) {
+
+            return CategoryResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotAddress(spot.getSpotAddress())
+                    .spotName(spot.getSpotName())
+                    .category(spot.getSpotCategory().getCategoryName())
+                    .imageUrl(imageUrl)
+                    .spotScraps(spot.getSpotScraps())
+                    .isScraped(isScraped)
+                    .reviews(reviews)
+                    .tags(tags)
+                    .build();
+        }
+    }
 }

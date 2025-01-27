@@ -17,8 +17,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     @Query("SELECT s FROM Spot s WHERE s.spotId = :spotId AND s.isDeleted = false")
     Optional<Spot> findByIdAndDeletedFalse(@Param("spotId") Long spotId);
 
-    Page<Spot> findBySpotNameContainingAndDeletedFalse(String spotName, Pageable pageable);
-
+    //스팟 검색
     @Query(value = """
         SELECT s.*,
         ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000 as distance
@@ -50,4 +49,35 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     );
 
     List<Spot> findAllByMemberOrderByCreatedAtDesc(Member member);
+
+    //스팟 카테고리 조회
+    @Query(value = """
+        SELECT s.*,
+        ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000 as distance
+        FROM spot s
+        WHERE s.category_id = :categoryId
+        AND s.is_deleted = false
+        ORDER BY s.spot_scraps DESC
+        """,
+            nativeQuery = true)
+    Page<Object[]> findByCategoryOrderByScrap(
+            @Param("categoryId") Long categoryId,
+            @Param("userLocation") Point userLocation,
+            Pageable pageable
+    );
+
+    @Query(value = """
+        SELECT s.*,
+        ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000 as distance
+        FROM spot s
+        WHERE s.category_id = :categoryId
+        AND s.is_deleted = false
+        ORDER BY distance
+        """,
+            nativeQuery = true)
+    Page<Object[]> findByCategoryOrderByDistance(
+            @Param("categoryId") Long categoryId,
+            @Param("userLocation") Point userLocation,
+            Pageable pageable
+    );
 }
