@@ -38,7 +38,7 @@ public class JwtService {
     private static final int HEADER_INDEX = 0;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private Long accesstokenValidTime = 1000L * 60 * 60 * 24; // 1d
+    private Long accesstokenValidTime = 1000L * 60 ; // 1d
     private Long refreshTokenValidTime = 1000L * 60 * 60 * 24 * 7; // 7d
 
     //Secret Key 인코딩
