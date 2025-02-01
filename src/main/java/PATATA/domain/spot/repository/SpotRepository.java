@@ -80,4 +80,28 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("userLocation") Point userLocation,
             Pageable pageable
     );
+
+    @Query(value = """
+            SELECT s.*,
+                   ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000 as distance
+            FROM spot s
+            WHERE MBRContains(
+                    ST_SRID(
+                        ST_LineStringFromText(
+                            CONCAT('LINESTRING(',
+                                    :minLng, ' ', :minLat, ',',
+                                    :maxLng, ' ', :maxLat, ')'
+                                    )),4326
+                     ), s.spot_location)
+               AND (:categoryId IS NULL OR s.category_id = :categoryId)
+            """
+            , nativeQuery = true)
+    List<Object[]> findSpotsInBounds(
+            @Param("minLat") Double minLat,
+            @Param("minLng") Double minLng,
+            @Param("maxLat") Double maxLat,
+            @Param("maxLng") Double maxLng,
+            @Param("userLocation") Point userLocation,
+            @Param("categoryId") Long categoryId
+    );
 }

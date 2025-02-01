@@ -1,10 +1,7 @@
 package PATATA.domain.spot.dto;
 
 import PATATA.domain.member.entity.Member;
-import PATATA.domain.spot.entity.Category;
-import PATATA.domain.spot.entity.Review;
-import PATATA.domain.spot.entity.Spot;
-import PATATA.domain.spot.entity.Tag;
+import PATATA.domain.spot.entity.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +36,7 @@ public class SpotResponseDto {
         private String spotAddressDetail;
         private String categoryName;
         private String memberName;
+        private List<String> images;
         private List<String> tags;
         private Integer reviewCount;
         private List<ReviewInfo> reviews;
@@ -51,7 +49,7 @@ public class SpotResponseDto {
             private String reviewText;
         }
 
-        public static DetailResponse from(Spot spot, Boolean isAuthor, List<Review> reviews, List<Tag> tags) {
+        public static DetailResponse from(Spot spot, Boolean isAuthor, List<Review> reviews, List<Tag> tags, List<SpotImage> spotImages) {
             List<ReviewInfo> reviewInfos = reviews.stream()
                     .map(review -> ReviewInfo.builder()
                             .reviewId(review.getReviewId())
@@ -64,6 +62,10 @@ public class SpotResponseDto {
                     .map(Tag::getTagName)
                     .collect(Collectors.toList());
 
+            List<String> images = spotImages.stream()
+                    .map(SpotImage::getImageUrl)
+                    .collect(Collectors.toList());
+
             return DetailResponse.builder()
                     .spotId(spot.getSpotId())
                     .isAuthor(isAuthor)
@@ -73,6 +75,7 @@ public class SpotResponseDto {
                     .spotAddressDetail(spot.getSpotAddressDetail())
                     .categoryName(spot.getSpotCategory().getCategoryName())
                     .memberName(spot.getMember().getNickName())
+                    .images(images)
                     .tags(tagNames)
                     .reviewCount(reviewInfos.size())
                     .reviews(reviewInfos)

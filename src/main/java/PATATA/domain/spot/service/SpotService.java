@@ -14,13 +14,11 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static PATATA.global.error.code.status.ErrorStatus.*;
@@ -45,7 +43,7 @@ public class SpotService {
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
         Point point = geometryFactory.createPoint(new Coordinate(requestDTO.getLongitude(), requestDTO.getLatitude()));
-        //point.setSRID(4326);
+        point.setSRID(4326);
 
         Spot spot = SpotConverter.toEntity(requestDTO, point, category, member);
         Spot savedSpot = spotRepository.save(spot);
@@ -93,7 +91,8 @@ public class SpotService {
         List<Tag> tags = spotTagRepository.findBySpot(spot).stream()
                 .map(SpotTag::getTag)
                 .collect(Collectors.toList());
-        return SpotResponseDto.DetailResponse.from(spot, isAuthor, reviews, tags);
+        List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
+        return SpotResponseDto.DetailResponse.from(spot, isAuthor, reviews, tags, spotImages);
     }
 
     @Transactional
@@ -140,6 +139,7 @@ public class SpotService {
         // 사용자 위치 Point 객체 생성
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        userLocation.setSRID(4326);
 
         if (sortBy.equals("DISTANCE")) {
             return spotRepository.findNearbySpotsWithDistance(spotName, userLocation, pageable)
