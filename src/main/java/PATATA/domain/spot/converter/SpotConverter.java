@@ -81,4 +81,6 @@ public class SpotConverter {
                 spot, representativeImageUrl, isScraped, reviews, tags);
 
     }
+
+
 }
