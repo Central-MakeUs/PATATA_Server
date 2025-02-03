@@ -29,7 +29,10 @@ public class AppleClientSecretGenerator {
     private String privateKeyString;
 
     private PrivateKey getPrivateKey() throws Exception {
-        String privateKeyPEM = privateKeyString;
+        String privateKeyPEM = privateKeyString
+                .replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s", ""); // 모든 공백 제거
 
         byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
