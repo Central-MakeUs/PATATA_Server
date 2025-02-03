@@ -30,7 +30,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
         // 헤더에서 토큰 가져오기
         String token = jwtService.resolveToken(request);
-        //String requestURI = request.getRequestURI();
 
         // 토큰 존재 여부 및 토큰 검증
         if (StringUtils.isNotEmpty(token)) {
@@ -43,12 +42,22 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
                 request.setAttribute("username", authentication.getName());
             } else {
                 // 유효하지 않은 토큰 처리
-                throw new ExpiredJwtException(null, null, "유효하지 않은 AccessToken 입니다.");
+                handleUnauthorizedResponse(response, "TOKEN4002","유효하지 않은 AccessToken 입니다.");
+                return;
             }
         } else {
             logger.warn("Authorization 헤더가 없거나 비어 있습니다");
+            handleUnauthorizedResponse(response, "TOKEN4000","토큰값이 존재하지 않습니다.");
+            return;
         }
 
         chain.doFilter(request, response);
+    }
+
+    private void handleUnauthorizedResponse(HttpServletResponse response, String code, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"isSuccess\": \"false\", \"code\": \"" + code + "\", \"message\": \"" + message + "\"}");
     }
 }
