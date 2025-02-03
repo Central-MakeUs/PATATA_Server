@@ -35,6 +35,7 @@ public class SpotService {
     private final SpotTagRepository spotTagRepository;
     private final SpotImageRepository spotImageRepository;
     private final ReviewRepository reviewRepository;
+    private final ScrapRepository scrapRepository;
     private final S3ImageService s3Service;
     private final SpotConverter spotConverter;
 
@@ -85,14 +86,13 @@ public class SpotService {
         Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
         Boolean isAuthor = spot.getMember().getMemberId().equals(member.getMemberId());
-        log.info(String.valueOf(spot.getMember().getMemberId()));
-        log.info(String.valueOf(member.getMemberId()));
+        Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
         List<Review> reviews = reviewRepository.findBySpot(spot);
         List<Tag> tags = spotTagRepository.findBySpot(spot).stream()
                 .map(SpotTag::getTag)
                 .collect(Collectors.toList());
         List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
-        return SpotResponseDto.DetailResponse.from(spot, isAuthor, reviews, tags, spotImages);
+        return SpotResponseDto.DetailResponse.from(spot, isAuthor, isScraped, reviews, tags, spotImages);
     }
 
     @Transactional
