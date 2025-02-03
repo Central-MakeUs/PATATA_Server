@@ -2,6 +2,7 @@ package PATATA.auth.jwt.service;
 
 import PATATA.global.error.code.status.ErrorStatus;
 import PATATA.global.error.exception.ExceptionHandler;
+import PATATA.global.error.exception.JwtHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +39,7 @@ public class JwtService {
     private static final int HEADER_INDEX = 0;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private Long accesstokenValidTime = 1000L * 60 ; // 1d
+    private Long accesstokenValidTime = 1000L * 60 * 60 * 24; // 1d
     private Long refreshTokenValidTime = 1000L * 60 * 60 * 24 * 7; // 7d
 
     //Secret Key 인코딩
@@ -113,7 +114,7 @@ public class JwtService {
     public Boolean validateTokenBoolean(String token) {
         Date now = new Date();
 
-        try{
+        try {
             String base64EncodedSecretKey = encodeBase64SecretKey("" + JWT_SECRET);
             Key key = getKeyFromBase64EncodedKey(base64EncodedSecretKey);
 
@@ -122,8 +123,9 @@ public class JwtService {
                     .setSigningKey(key)
                     .parseClaimsJws(token);
             return !claims.getBody().getExpiration().before(new Date(now.getTime()));
-        }catch (JwtException e){
-            return false;
+        } catch (JwtException e) {
+            // JWT 검증 실패 시 JwtHandler 예외 던지기
+            throw new JwtHandler(ErrorStatus.ACCESS_TOKEN_UNAUTHORIZED);
         }
     }
 

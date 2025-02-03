@@ -1,8 +1,11 @@
 package PATATA.auth.oauth.service;
 
+import PATATA.auth.oauth.dto.AppleRevokeRequest;
 import PATATA.domain.member.entity.LoginType;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.global.error.exception.OAuthHandler;
+import PATATA.infra.oauth.apple.AppleClientSecretGenerator;
+import PATATA.infra.oauth.apple.AppleOAuthProvider;
 import PATATA.infra.oauth.apple.ApplePublicKeyGenerator;
 import PATATA.infra.oauth.apple.client.AppleAuthClient;
 import PATATA.auth.oauth.dto.AppleLoginRequestDTO;
@@ -26,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.security.PublicKey;
 import java.util.Arrays;
@@ -42,14 +46,18 @@ public class OAuthService {
 
     private final AppleAuthClient appleAuthClient;
     private final ApplePublicKeyGenerator applePublicKeyGenerator;
+    private final AppleClientSecretGenerator appleClientSecretGenerator;
+    private final AppleOAuthProvider appleOAuthProvider;
     private final JwtService jwtService;
     private final MemberService memberService;
     private final MemberRepository memberRepository;
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
-    //@Value("${spring.social-login.provider.apple.client-id}")
-    //private String appleClientId;
+    //애플 로그인
+    @Value("${spring.social-login.provider.apple.client-id}")
+    private String appleClientId;
 
+    //구글 로그인
     @Value("${spring.social-login.provider.google.client-id.android}")
     private String androidClientId;
 
@@ -134,5 +142,29 @@ public class OAuthService {
         } catch (Exception e) {
             throw new OAuthHandler(TOKEN_VALIDATION_FAILED);
         }
+    }
+
+    @jakarta.transaction.Transactional
+    public void appleDelete(Member member, String code) {
+        try {
+            String clientSecret = appleClientSecretGenerator.createClientSecret();
+            String refreshToken = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
+
+            AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
+                    .client_id(appleClientId)
+                    .refresh_token(refreshToken)
+                    .client_secret(clientSecret)
+                    .token_type("REFRESH_TOKEN")
+                    .build();
+            appleAuthClient.revoke(appleRevokeRequest);
+        } catch (HttpClientErrorException e) {
+            throw new RuntimeException("Apple Revoke Error");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        log.info("애플 탈퇴 성공");
+        log.info("member id :: " + member.getMemberId());
+
+        memberService.deleteMember(member);
     }
 }
