@@ -3,13 +3,11 @@ package PATATA.domain.spot.entity;
 import PATATA.domain.member.entity.Member;
 import PATATA.global.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

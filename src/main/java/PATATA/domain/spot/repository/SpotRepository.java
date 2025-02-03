@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public interface SpotRepository extends JpaRepository<Spot, Long> {
 
+    List<Spot> findByMember(Member member);
+
     @Query("SELECT s FROM Spot s WHERE s.spotId = :spotId AND s.isDeleted = false")
     Optional<Spot> findByIdAndDeletedFalse(@Param("spotId") Long spotId);
 

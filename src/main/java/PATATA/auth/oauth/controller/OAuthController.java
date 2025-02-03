@@ -9,6 +9,7 @@ import PATATA.auth.oauth.dto.LoginResponseDTO;
 import PATATA.auth.oauth.service.OAuthService;
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.service.MemberService;
+import io.micrometer.common.lang.Nullable;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -72,4 +73,13 @@ public class OAuthController {
         } else
             throw new JwtHandler(TOKEN_EMPTY);
     }
+
+    @Operation(summary = "애플 탈퇴 API")
+    @DeleteMapping("/delete/apple")
+    public ApiResponse<String> appleWithdraw(@AuthenticationPrincipal Member member,
+                                             @Nullable @RequestHeader("authorization-code") final String code){
+        oAuthService.appleDelete(member, code);
+        return ApiResponse.onSuccess("apple delete success");
+    }
+
 }

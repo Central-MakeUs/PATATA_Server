@@ -3,10 +3,7 @@ package PATATA.domain.spot.entity;
 import PATATA.global.BaseEntity;
 import PATATA.domain.member.entity.Member;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.locationtech.jts.geom.Point;
 import org.hibernate.type.SqlTypes;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -44,6 +41,7 @@ public class Spot extends BaseEntity {
     @JoinColumn(name = "category_id")
     private Category spotCategory;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;

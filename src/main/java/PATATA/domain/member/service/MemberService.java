@@ -1,5 +1,12 @@
 package PATATA.domain.member.service;
 
+import PATATA.domain.member.entity.Role;
+import PATATA.domain.spot.entity.Review;
+import PATATA.domain.spot.entity.Scrap;
+import PATATA.domain.spot.entity.Spot;
+import PATATA.domain.spot.repository.ReviewRepository;
+import PATATA.domain.spot.repository.ScrapRepository;
+import PATATA.domain.spot.repository.SpotRepository;
 import PATATA.global.error.exception.JwtHandler;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.auth.jwt.service.JwtService;
@@ -10,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static PATATA.global.error.code.status.ErrorStatus.*;
 
 @Service
@@ -17,6 +26,9 @@ import static PATATA.global.error.code.status.ErrorStatus.*;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final JwtService jwtService;
+    private final SpotRepository spotRepository;
+    private final ReviewRepository reviewRepository;
+    private final ScrapRepository scrapRepository;
 
     //accessToken, refreshToken 발급
     @Transactional
@@ -70,5 +82,35 @@ public class MemberService {
         }
         // 닉네임 업데이트
         member.updateNickname(newNickname);
+    }
+
+    public void deleteMember(Member member) {
+
+        //스팟 삭제
+        deleteSpot(member);
+        //리뷰 삭제
+        deleteReview(member);
+        //스크랩 내역 삭제
+        deleteScrap(member);
+        //멤버 역할 변경
+        member.updateRole(Role.WITHDRAWAL);
+    }
+
+    private void deleteSpot(Member member) {
+        List<Spot> spots = spotRepository.findByMember(member);
+        spots.forEach(spot -> spot.setMember(null));
+        spotRepository.saveAll(spots);
+    }
+
+    private void deleteReview(Member member) {
+        List<Review> reviews = reviewRepository.findByMember(member);
+        reviews.forEach(review -> review.setMember(null));
+        reviewRepository.saveAll(reviews);
+    }
+
+    private void deleteScrap(Member member) {
+        List<Scrap> scraps = scrapRepository.findByMember(member);
+        scraps.forEach(Scrap::delete);
+        scrapRepository.saveAll(scraps);
     }
 }

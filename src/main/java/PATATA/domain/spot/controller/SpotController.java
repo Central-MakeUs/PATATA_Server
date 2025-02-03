@@ -73,7 +73,7 @@ public class SpotController {
     public ApiResponse<SpotResponseDto.SearchListResponse> searchSpot(
             @RequestParam("spotName") String spotName,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "size", defaultValue = "25") int size,
             @RequestParam(value = "latitude") Double latitude,
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
