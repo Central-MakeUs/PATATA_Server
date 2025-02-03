@@ -36,7 +36,7 @@ public class AppleClientSecretGenerator {
 
         byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-        KeyFactory keyFactory = KeyFactory.getInstance("EC"); // 알고리즘을 필요에 맞게 설정하세요.
+        KeyFactory keyFactory = KeyFactory.getInstance("EC");
         return keyFactory.generatePrivate(keySpec);
     }
 
