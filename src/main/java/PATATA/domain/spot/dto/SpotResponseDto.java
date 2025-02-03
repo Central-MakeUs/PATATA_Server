@@ -28,13 +28,15 @@ public class SpotResponseDto {
     @Getter
     @Builder
     public static class DetailResponse {
+
         private Long spotId;
         private Boolean isAuthor;
+        private Boolean isScraped;
         private String spotName;
         private String spotDescription;
         private String spotAddress;
         private String spotAddressDetail;
-        private String categoryName;
+        private Long categoryId;
         private String memberName;
         private List<String> images;
         private List<String> tags;
@@ -49,7 +51,7 @@ public class SpotResponseDto {
             private String reviewText;
         }
 
-        public static DetailResponse from(Spot spot, Boolean isAuthor, List<Review> reviews, List<Tag> tags, List<SpotImage> spotImages) {
+        public static DetailResponse from(Spot spot, Boolean isAuthor, Boolean isScraped, List<Review> reviews, List<Tag> tags, List<SpotImage> spotImages) {
             List<ReviewInfo> reviewInfos = reviews.stream()
                     .map(review -> ReviewInfo.builder()
                             .reviewId(review.getReviewId())
@@ -69,11 +71,12 @@ public class SpotResponseDto {
             return DetailResponse.builder()
                     .spotId(spot.getSpotId())
                     .isAuthor(isAuthor)
+                    .isScraped(isScraped)
                     .spotName(spot.getSpotName())
                     .spotDescription(spot.getSpotDescription())
                     .spotAddress(spot.getSpotAddress())
                     .spotAddressDetail(spot.getSpotAddressDetail())
-                    .categoryName(spot.getSpotCategory().getCategoryName())
+                    .categoryId(spot.getSpotCategory().getCategoryId())
                     .memberName(spot.getMember().getNickName())
                     .images(images)
                     .tags(tagNames)
