@@ -139,7 +139,6 @@ public class SpotService {
         // 사용자 위치 Point 객체 생성
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
-        userLocation.setSRID(4326);
 
         if (sortBy.equals("DISTANCE")) {
             return spotRepository.findNearbySpotsWithDistance(spotName, userLocation, pageable)
