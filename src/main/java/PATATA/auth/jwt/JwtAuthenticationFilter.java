@@ -48,6 +48,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         } else {
             logger.warn("Authorization 헤더가 없거나 비어 있습니다");
             handleUnauthorizedResponse(response, "TOKEN4000","토큰값이 존재하지 않습니다.");
+
             return;
         }
 

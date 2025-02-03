@@ -124,8 +124,7 @@ public class JwtService {
                     .parseClaimsJws(token);
             return !claims.getBody().getExpiration().before(new Date(now.getTime()));
         } catch (JwtException e) {
-            // JWT 검증 실패 시 JwtHandler 예외 던지기
-            throw new JwtHandler(ErrorStatus.ACCESS_TOKEN_UNAUTHORIZED);
+            return false;
         }
     }
 
