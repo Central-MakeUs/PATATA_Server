@@ -1,21 +1,21 @@
 package PATATA.auth.oauth.service;
 
-import PATATA.auth.oauth.dto.AppleRevokeRequest;
+import PATATA.auth.oauth.dto.*;
 import PATATA.domain.member.entity.LoginType;
+import PATATA.global.error.code.status.ErrorStatus;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.global.error.exception.OAuthHandler;
 import PATATA.infra.oauth.apple.AppleClientSecretGenerator;
 import PATATA.infra.oauth.apple.AppleOAuthProvider;
 import PATATA.infra.oauth.apple.ApplePublicKeyGenerator;
 import PATATA.infra.oauth.apple.client.AppleAuthClient;
-import PATATA.auth.oauth.dto.AppleLoginRequestDTO;
-import PATATA.auth.oauth.dto.GoogleLoginRequestDTO;
-import PATATA.auth.oauth.dto.LoginResponseDTO;
 import PATATA.auth.jwt.service.JwtService;
 import PATATA.domain.member.converter.MemberConverter;
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.repository.MemberRepository;
 import PATATA.domain.member.service.MemberService;
+import PATATA.infra.oauth.google.GoogleAuthClient;
+import PATATA.infra.oauth.google.GoogleUnlinkClient;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -51,6 +51,9 @@ public class OAuthService {
     private final JwtService jwtService;
     private final MemberService memberService;
     private final MemberRepository memberRepository;
+
+    private final GoogleAuthClient googleAuthClient;
+    private final GoogleUnlinkClient googleUnlinkClient;
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
     //애플 로그인
@@ -150,7 +153,16 @@ public class OAuthService {
         try {
             String clientSecret = appleClientSecretGenerator.createClientSecret();
             String refreshToken = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
+            String idToken = appleOAuthProvider.getAppleIdToken(code, clientSecret);
+            Claims claims = validateAndGetClaims(idToken);
+            String sub = claims.getSubject();
 
+            // 회원 정보 일치 검사
+            if (!sub.equals(member.getAppleSub())) {
+                throw new MemberHandler(MEMBER_NOT_MATCH);
+            }
+
+            // 연결 끊기
             AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
                     .client_id(appleClientId)
                     .refresh_token(refreshToken)
@@ -158,14 +170,28 @@ public class OAuthService {
                     .token_type("REFRESH_TOKEN")
                     .build();
             appleAuthClient.revoke(appleRevokeRequest);
+
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Apple Revoke Error");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        log.info("애플 탈퇴 성공");
-        log.info("member id :: " + member.getMemberId());
 
         memberService.deleteMember(member);
+    }
+
+    public void googleDelete(Member member, String googleToken) {
+
+        try {
+            GoogleAuthInfo googleAuthInfo = googleAuthClient.getGoogleInfo("Bearer " + googleToken);
+            //회원 일치 검사
+            if (!googleAuthInfo.getSub().equals(member.getGoogleSub())) {
+                throw new MemberHandler(MEMBER_NOT_MATCH);
+            }
+            googleUnlinkClient.unlink(googleToken);
+            memberService.deleteMember(member);
+        } catch (Exception e) {
+            throw new MemberHandler(MEMBER_DELETE_FAILED);
+        }
     }
 }
