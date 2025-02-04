@@ -85,9 +85,9 @@ public class OAuthController {
     @Operation(summary = "구글 탈퇴 API")
     @DeleteMapping("/delete/google")
     public ApiResponse<String> googleWithdraw(@AuthenticationPrincipal Member member,
-                                             @Nullable @RequestHeader("authorization-code") final String code){
-        oAuthService.appleDelete(member, code);
-        return ApiResponse.onSuccess("apple delete success");
+                                             @Nullable @RequestHeader("google-accessToken") final String googleToken){
+        oAuthService.googleDelete(member, googleToken);
+        return ApiResponse.onSuccess("google delete success");
     }
 
 }

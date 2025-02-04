@@ -24,5 +24,16 @@ public class AppleOAuthProvider {
 
         return appleAuthClient.findAppleToken(appleTokenRequest).refreshToken();
     }
+
+    public String getAppleIdToken(String code, String clientSecret) {
+        AppleTokenRequest appleTokenRequest = AppleTokenRequest.builder()
+                .client_id(clientId)
+                .client_secret(clientSecret)
+                .authorization_code(code)
+                .grant_type("AUTHORIZATION_CODE")
+                .build();
+
+        return appleAuthClient.findAppleToken(appleTokenRequest).idToken();
+    }
 }
 

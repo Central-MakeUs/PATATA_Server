@@ -74,12 +74,14 @@ public class MemberService {
 
     @Transactional
     public void updateNickname(Member member, String newNickname) {
-        // 닉네임 중복 검사
-        if (!member.getNickName().equals(newNickname)) {  //본인이 사용 중인 닉네임이 아닌 경우
+        String currentNickname = member.getNickName();
+
+        if (currentNickname == null || !currentNickname.equals(newNickname)) {
             if (memberRepository.existsByNickName(newNickname)) {
                 throw new MemberHandler(NICKNAME_ALREADY_EXIST);
             }
         }
+
         // 닉네임 업데이트
         member.updateNickname(newNickname);
     }
