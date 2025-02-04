@@ -108,6 +108,7 @@ public class OAuthService {
         }
 
         Payload payload = idToken.getPayload();
+        String googleSub = payload.getSubject();
         String email = payload.getEmail();
 
         Optional<Member> memberByEmail = memberRepository.findByEmail(email);
@@ -121,7 +122,7 @@ public class OAuthService {
             return memberService.createToken(member);
         }
 
-        Member member = memberRepository.save(MemberConverter.toGoogleMember(email));
+        Member member = memberRepository.save(MemberConverter.toGoogleMember(googleSub, email));
         return memberService.createToken(member);
     }
 

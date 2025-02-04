@@ -20,11 +20,12 @@ public class MemberConverter {
                 .refreshTokenExpiresAt(LocalDateTime.now()) // 초기 시간 설정
                 .build();
     }
-    public static Member toGoogleMember(String email) {
+    public static Member toGoogleMember(String sub, String email) {
         return Member.builder()
                 .role(Role.USER)
                 .email(email)
                 .nickName(null)
+                .googleSub(sub)
                 .loginType(LoginType.GOOGLE)
                 .refreshToken("") // 초기 빈 값 설정
                 .refreshTokenExpiresAt(LocalDateTime.now()) // 초기 시간 설정
