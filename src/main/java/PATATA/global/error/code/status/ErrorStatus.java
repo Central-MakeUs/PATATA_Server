@@ -21,7 +21,7 @@ public enum ErrorStatus implements BaseErrorCode {
     TOKEN_EMPTY(HttpStatus.BAD_REQUEST, "TOKEN4000", "토큰값이 존재하지 않습니다."),
     INVALID_TOKEN_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4001", "잘못된 토큰 형식입니다."),
     ACCESS_TOKEN_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "TOKEN4002", "유효하지 않은 AccessToken입니다."),
-    REFRESH_TOKEN_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "TOKEN4003", "유효하지 않은 RefreshToken입니다. 다시 로그인하세요."),
+    REFRESH_TOKEN_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "TOKEN4003", "유효하지 않은 RefreshToken입니다."),
 
     //OAuth 토큰 에러
     INVALID_APPLE_ID_TOKEN(HttpStatus.UNAUTHORIZED, "OAUTH4000", "APPLE identityToken 값이 올바르지 않습니다."),

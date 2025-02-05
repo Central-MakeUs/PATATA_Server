@@ -76,12 +76,17 @@ public class OAuthService {
             Claims claims = validateAndGetClaims(appleLoginRequestDto.getIdentityToken());
             String sub = claims.getSubject();
             String email = claims.get(EMAIL_CLAIM, String.class);
+            log.info("sub: {}", sub);
+            log.info("email: {}", email);
+
 
             Optional<Member> memberByEmail = memberRepository.findByEmail(email);
             if (memberByEmail.isPresent()) {
                 Member member = memberByEmail.get();
                 LoginType loginType = member.getLoginType();
+                log.info("loginType: {}", loginType);
                 if (!loginType.equals(LoginType.APPLE)) {
+                    log.info("loginType: {}", loginType);
                     throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
                 }
                 return memberService.createToken(member);
@@ -89,6 +94,10 @@ public class OAuthService {
 
             Member member = memberRepository.save(MemberConverter.toAppleMember(sub, email));
             return memberService.createToken(member);
+        }
+        catch (MemberHandler e) {
+            log.error("소셜 로그인 타입 불일치: {}", e.getMessage());
+            throw e;
         }
         catch (Exception e) {
             log.error("Apple 로그인 실패: ", e);
