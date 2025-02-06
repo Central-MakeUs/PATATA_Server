@@ -12,6 +12,7 @@ import PATATA.domain.member.service.MemberService;
 import io.micrometer.common.lang.Nullable;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
@@ -77,7 +78,7 @@ public class OAuthController {
     @Operation(summary = "애플 탈퇴 API")
     @DeleteMapping("/delete/apple")
     public ApiResponse<String> appleWithdraw(@AuthenticationPrincipal Member member,
-                                             @Nullable @RequestHeader("authorization-code") final String code){
+                                             @NotEmpty @RequestHeader("authorization-code") final String code){
         oAuthService.appleDelete(member, code);
         return ApiResponse.onSuccess("apple delete success");
     }
@@ -85,7 +86,7 @@ public class OAuthController {
     @Operation(summary = "구글 탈퇴 API")
     @DeleteMapping("/delete/google")
     public ApiResponse<String> googleWithdraw(@AuthenticationPrincipal Member member,
-                                             @Nullable @RequestHeader("google-accessToken") final String googleToken){
+                                             @NotEmpty @RequestHeader("google-accessToken") final String googleToken){
         oAuthService.googleDelete(member, googleToken);
         return ApiResponse.onSuccess("google delete success");
     }
