@@ -127,7 +127,7 @@ public class SpotService {
         }
 
         if (spot.isDeleted()) {
-            throw new SpotHandler(SPOT_ALREADY_DELETE);
+            throw new SpotHandler(SPOT_NOT_FOUND);
         }
 
         spot.delete();

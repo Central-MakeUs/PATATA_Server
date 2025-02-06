@@ -179,14 +179,14 @@ public class OAuthService {
                     .token_type("REFRESH_TOKEN")
                     .build();
             appleAuthClient.revoke(appleRevokeRequest);
-
+            memberService.deleteMember(member);
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Apple Revoke Error");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new MemberHandler(MEMBER_DELETE_FAILED);
         }
 
-        memberService.deleteMember(member);
+
     }
 
     public void googleDelete(Member member, String googleToken) {
@@ -199,6 +199,8 @@ public class OAuthService {
             }
             googleUnlinkClient.unlink(googleToken);
             memberService.deleteMember(member);
+        } catch (MemberHandler e) {
+            throw e;
         } catch (Exception e) {
             throw new MemberHandler(MEMBER_DELETE_FAILED);
         }

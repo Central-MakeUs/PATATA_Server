@@ -14,6 +14,7 @@ import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.repository.MemberRepository;
 import PATATA.auth.oauth.dto.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static PATATA.global.error.code.status.ErrorStatus.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -84,10 +86,10 @@ public class MemberService {
 
         // 닉네임 업데이트
         member.updateNickname(newNickname);
+        memberRepository.save(member);
     }
 
     public void deleteMember(Member member) {
-
         //스팟 삭제
         deleteSpot(member);
         //리뷰 삭제

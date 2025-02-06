@@ -42,23 +42,19 @@ public enum ErrorStatus implements BaseErrorCode {
     //Spot 에러
     SPOT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4000", "삭제되었거나 존재하지 않는 스팟입니다."),
     CATEGORY_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4001", "해당하는 카테고리를 찾을 수 없습니다."),
-    NO_AUTHORIZATION(HttpStatus.BAD_REQUEST, "SPOT4002", "해당하는 스팟에 대한 권한이 없습니다."),
-    SPOT_ALREADY_DELETE(HttpStatus.BAD_REQUEST, "SPOT4003", "이미 삭제된 스팟입니다."),
-    INVALID_SORT_TYPE(HttpStatus.BAD_REQUEST, "SPOT4004", "잘못된 정렬명입니다."),
+    NO_AUTHORIZATION(HttpStatus.BAD_REQUEST, "SPOT4002", "해당 스팟에 대한 권한이 없습니다."),
+    INVALID_SORT_TYPE(HttpStatus.BAD_REQUEST, "SPOT4003", "잘못된 정렬명입니다."),
 
     //Review 에러
     REVIEW_NOT_FOUND(HttpStatus.BAD_REQUEST, "REVIEW4000", "해당하는 리뷰를 찾을 수 없습니다."),
-    NOT_REVIEW_OWNER(HttpStatus.BAD_REQUEST, "REVIEW4000", "해당하는 리뷰의 작성자가 아닙니다."),
+    NOT_REVIEW_OWNER(HttpStatus.BAD_REQUEST, "REVIEW4001", "해당하는 리뷰의 작성자가 아닙니다."),
 
     //Scrap 에러
     SCRAP_FAIL(HttpStatus.BAD_REQUEST, "SCRAP4000", "스크랩에 실패하였습니다."),
 
     //S3 이미지 에러
     IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMAGE4000", "이미지가 첨부되지 않았습니다."),
-    IMAGE_NOT_SAVE(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 저장에 실패했습니다." ),
-    S3_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "S34000", "이미지 업로드에 실패하였습니다."),
-    NO_FILE_EXTENTION(HttpStatus.BAD_REQUEST, "S34001", "해당되는 파일 확장자가 없습니다."),
-    INVALID_FILE_EXTENTION(HttpStatus.BAD_REQUEST, "S34002", "유효하지 않은 파일 확장자입니다.");
+    S3_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 업로드에 실패하였습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
