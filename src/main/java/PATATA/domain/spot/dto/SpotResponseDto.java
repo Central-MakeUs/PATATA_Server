@@ -195,4 +195,17 @@ public class SpotResponseDto {
                     .build();
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class ReportResponse {
+        private String message;
+
+        public static ReportResponse of() {
+            return ReportResponse.builder()
+                    .message("신고가 접수되었습니다")
+                    .build();
+        }
+    }
 }
