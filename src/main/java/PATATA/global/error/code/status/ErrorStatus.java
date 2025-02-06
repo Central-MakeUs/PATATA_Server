@@ -54,7 +54,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //S3 이미지 에러
     IMAGE_EMPTY(HttpStatus.BAD_REQUEST, "IMAGE4000", "이미지가 첨부되지 않았습니다."),
-    S3_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 업로드에 실패하였습니다.");
+    S3_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 업로드에 실패하였습니다."),
+
+    //신고하기 에러
+    CANNOT_REPORT_OWN_SPOT(HttpStatus.BAD_REQUEST, "REPORT4000", "자신의 스팟은 신고할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

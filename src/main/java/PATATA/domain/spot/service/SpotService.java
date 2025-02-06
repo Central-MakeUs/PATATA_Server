@@ -1,12 +1,14 @@
 package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
+import PATATA.domain.report.entity.Report;
 import PATATA.domain.spot.converter.SpotConverter;
 import PATATA.domain.spot.dto.ScrapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
 import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.entity.*;
 import PATATA.domain.spot.repository.*;
+import PATATA.global.error.exception.ReportHandler;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,7 @@ public class SpotService {
     private final SpotImageRepository spotImageRepository;
     private final ReviewRepository reviewRepository;
     private final ScrapRepository scrapRepository;
+    private final ReportRepository reportRepository;
     private final S3ImageService s3Service;
     private final SpotConverter spotConverter;
 
@@ -187,4 +190,6 @@ public class SpotService {
         }
         throw new SpotHandler(INVALID_SORT_TYPE);
     }
+
+
 }

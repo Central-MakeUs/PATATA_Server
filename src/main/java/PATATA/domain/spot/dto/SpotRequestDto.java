@@ -90,4 +90,14 @@ public class SpotRequestDto {
 
         private Long categoryId;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ReportRequest {
+        @NotBlank(message = "신고 사유는 필수입니다")
+        private String reason;
+
+        private String description;  // 상세 설명 (선택사항)
+    }
 }
