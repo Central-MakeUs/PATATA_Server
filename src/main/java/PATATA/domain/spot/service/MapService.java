@@ -33,12 +33,13 @@ public class MapService {
     private final SpotTagRepository spotTagRepository;
     private final SpotImageRepository spotImageRepository;
 
-    public List<MapResponseDto.InBoundsResponse> getSpotsInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Member member) {
+    public List<MapResponseDto.InBoundsResponse> getSpotsInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Member member) {
 
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(userLng, userLat));
 
-        List<Object[]> results = spotRepository.findSpotsInBounds(minLat, minLng, maxLat, maxLng, userLocation, categoryId);
+        int limit = withSearch ? 29 : 30;
+        List<Object[]> results = spotRepository.findSpotsInBounds(minLat, minLng, maxLat, maxLng, userLocation, categoryId, limit);
 
         return results.stream()
                 .map(result -> {
