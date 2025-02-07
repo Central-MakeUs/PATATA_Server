@@ -15,25 +15,23 @@ public class MapResponseDto {
         private String spotName;
         private String spotAddress;
         private String spotAddressDetail;
-        private String category;
+        private Long categoryId;
         private List<String> tags;
-        private List<String> imageUrls;
+        private String representativeImageUrl;
         private Boolean isScraped;    // 현재 사용자의 스크랩 여부
-        private Boolean isAuthor;    //작성자 여부
         private Double distance;     //사용자와의 거리
 
-        public static MapResponseDto.InBoundsResponse from(Spot spot, List<String> imageUrls, List<String> tags, Boolean isScraped, Boolean isAuthor, Double distance) {
+        public static MapResponseDto.InBoundsResponse from(Spot spot, String representativeImageUrl, List<String> tags, Boolean isScraped, Double distance) {
 
             return InBoundsResponse.builder()
                     .spotId(spot.getSpotId())
                     .spotName(spot.getSpotName())
                     .spotAddress(spot.getSpotAddress())
                     .spotAddressDetail(spot.getSpotAddressDetail())
-                    .category(spot.getSpotCategory().getCategoryName())
+                    .categoryId(spot.getSpotCategory().getCategoryId())
                     .tags(tags)
-                    .imageUrls(imageUrls)
+                    .representativeImageUrl(representativeImageUrl)
                     .isScraped(isScraped)
-                    .isAuthor(isAuthor)
                     .distance(distance)
                     .build();
         }
