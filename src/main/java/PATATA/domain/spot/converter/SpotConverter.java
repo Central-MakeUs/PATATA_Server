@@ -50,9 +50,7 @@ public class SpotConverter {
         Long spotId = (Long) result[0];
         Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(()->new SpotHandler(SPOT_NOT_FOUND));
-        Double distance = BigDecimal.valueOf(((Number) result[12]).doubleValue())
-                .setScale(3, RoundingMode.HALF_UP)
-                .doubleValue();
+        Double distance = (Double) result[12];
         List<SpotImage> images = spotImageRepository.findBySpot(spot);
         String representativeImageUrl = images.stream()
                 .filter(SpotImage::getIsRepresentative)

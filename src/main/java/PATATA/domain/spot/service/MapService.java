@@ -2,7 +2,6 @@ package PATATA.domain.spot.service;
 
 
 import PATATA.domain.member.entity.Member;
-import PATATA.domain.spot.dto.MapRequestDto;
 import PATATA.domain.spot.dto.MapResponseDto;
 import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.entity.SpotImage;
@@ -30,7 +29,6 @@ import static PATATA.global.error.code.status.ErrorStatus.SPOT_NOT_FOUND;
 public class MapService {
 
     private final SpotRepository spotRepository;
-    private final GeometryFactory geometryFactory;
     private final ScrapRepository scrapRepository;
     private final SpotTagRepository spotTagRepository;
     private final SpotImageRepository spotImageRepository;
@@ -48,18 +46,55 @@ public class MapService {
                     Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                             .orElseThrow(()->new SpotHandler(SPOT_NOT_FOUND));
                     List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
-                    List<String> imageUrls = spotImages.stream()
+//                    List<String> imageUrls = spotImages.stream()
+//                            .map(SpotImage::getImageUrl)
+//                            .collect(Collectors.toList());
+                    String representativeImageUrl = spotImages.stream()
+                            .filter(SpotImage::getIsRepresentative)
+                            .findFirst()
                             .map(SpotImage::getImageUrl)
-                            .collect(Collectors.toList());
+                            .orElse(null);
                     List<SpotTag> spotTags = spotTagRepository.findBySpot(spot);
                     List<String> tags = spotTags.stream()
                             .map(spotTag -> spotTag.getTag().getTagName())
-                            .collect(Collectors.toList());                    Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
-                    Boolean isAuthor = spot.getMember().getMemberId().equals(member.getMemberId());
-                    Double distance = Math.round(((Number) result[12]).doubleValue() * 10.0) / 10.0;
+                            .collect(Collectors.toList());
+                    Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
+                    Double distance = (Double) result[12];
 
-                    return MapResponseDto.InBoundsResponse.from(spot, imageUrls, tags, isScraped, isAuthor, distance);
+                    return MapResponseDto.InBoundsResponse.from(spot, representativeImageUrl, tags, isScraped, distance);
                 })
                 .collect(Collectors.toList());
+    }
+
+    public MapResponseDto.InBoundsResponse getSpotSearched(String spotName, Double minLatitude, Double minLongitude, Double maxLatitude, Double maxLongitude, Double userLatitude, Double userLongitude, Member member) {
+        Spot spotSearched = findSpotByConditions(spotName, minLatitude, minLongitude, maxLatitude, maxLongitude);
+        List<SpotImage> spotImages = spotImageRepository.findBySpot(spotSearched);
+//        List<String> imageUrls = spotImages.stream()
+//                .map(SpotImage::getImageUrl)
+//                .collect(Collectors.toList());
+        String representativeImageUrl = spotImages.stream()
+                .filter(SpotImage::getIsRepresentative)
+                .findFirst()
+                .map(SpotImage::getImageUrl)
+                .orElse(null);
+        List<SpotTag> spotTags = spotTagRepository.findBySpot(spotSearched);
+        List<String> tags = spotTags.stream()
+                .map(spotTag -> spotTag.getTag().getTagName())
+                .collect(Collectors.toList());
+        Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spotSearched);
+        Double distance = spotRepository.calculateDistance(spotSearched.getSpotId(), userLatitude, userLongitude);
+        return MapResponseDto.InBoundsResponse.from(spotSearched, representativeImageUrl, tags, isScraped, distance);
+    }
+
+    // 조건에 따른 스팟 검색
+    private Spot findSpotByConditions(String spotName, Double minLatitude, Double minLongitude,
+                                      Double maxLatitude, Double maxLongitude) {
+        if (minLatitude == null || minLongitude == null || maxLatitude == null || maxLongitude == null) {
+            return spotRepository.findTopBySpotNameContainingOrderBySpotScrapsDesc(spotName)
+                    .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+        }
+        return spotRepository.findTopInBoundsByNameOrderByScrap(
+                        spotName, minLatitude, minLongitude, maxLatitude, maxLongitude)
+                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
     }
 }
