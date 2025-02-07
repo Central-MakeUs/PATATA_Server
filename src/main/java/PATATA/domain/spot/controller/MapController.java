@@ -33,9 +33,10 @@ public class MapController {
             @Parameter(description = "사용자 위도") @RequestParam(value = "userLatitude") Double userLatitude,
             @Parameter(description = "사용자 경도") @RequestParam(value = "userLongitude") Double userLongitude,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @Parameter(description = "검색과 함께 사용 여부") @RequestParam(value = "withSearch") Boolean withSearch,
             @AuthenticationPrincipal Member member
             ) {
-        List<MapResponseDto.InBoundsResponse> spots = mapService.getSpotsInBounds(minLatitude, minLongitude, maxLatitude, maxLongitude, userLatitude, userLongitude, categoryId, member);
+        List<MapResponseDto.InBoundsResponse> spots = mapService.getSpotsInBounds(minLatitude, minLongitude, maxLatitude, maxLongitude, userLatitude, userLongitude, categoryId, withSearch, member);
         return ApiResponse.onSuccess(spots);
     }
 

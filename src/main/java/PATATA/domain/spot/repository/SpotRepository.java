@@ -101,6 +101,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
                      ), s.spot_location)
             AND (:categoryId IS NULL OR s.category_id = :categoryId)
             ORDER BY distance
+            LIMIT :limit
             """
             , nativeQuery = true)
     List<Object[]> findSpotsInBounds(
@@ -109,7 +110,8 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("maxLat") Double maxLat,
             @Param("maxLng") Double maxLng,
             @Param("userLocation") Point userLocation,
-            @Param("categoryId") Long categoryId
+            @Param("categoryId") Long categoryId,
+            @Param("limit") Integer limit
     );
 
     //지도 내 스팟 검색(좌표x)
