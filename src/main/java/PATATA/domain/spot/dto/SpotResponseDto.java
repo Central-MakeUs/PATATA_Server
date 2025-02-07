@@ -117,12 +117,16 @@ public class SpotResponseDto {
     @Getter
     @Builder
     public static class SearchListResponse {
-        private long totalCount;
+        private int currentPage;    // 현재 페이지
+        private int totalPages;
+        private int totalCount;
         private List<SearchResponse> spots;
 
         public static SearchListResponse of(Page<SearchResponse> spots) {
             return SearchListResponse.builder()
-                    .totalCount(spots.getTotalElements())
+                    .currentPage(spots.getNumber())
+                    .totalPages(spots.getTotalPages())
+                    .totalCount((int) spots.getTotalElements())
                     .spots(spots.getContent())
                     .build();
         }
@@ -156,12 +160,16 @@ public class SpotResponseDto {
     @Getter
     @Builder
     public static class CategoryListResponse {
-        private long totalCount;
+        private int currentPage;    // 현재 페이지
+        private int totalPages;
+        private int totalCount;
         private List<CategoryResponse> spots;
 
         public static CategoryListResponse of(Page<CategoryResponse> spots) {
             return CategoryListResponse.builder()
-                    .totalCount(spots.getTotalElements())
+                    .currentPage(spots.getNumber())
+                    .totalPages(spots.getTotalPages())
+                    .totalCount((int) spots.getTotalElements())
                     .spots(spots.getContent())
                     .build();
         }
@@ -173,7 +181,7 @@ public class SpotResponseDto {
         private Long spotId;
         private String spotAddress;
         private String spotName;
-        private String category;
+        private Long categoryId;
         private String imageUrl;
         private Integer reviews;
         private Integer spotScraps;   // 스크랩 수
@@ -186,7 +194,7 @@ public class SpotResponseDto {
                     .spotId(spot.getSpotId())
                     .spotAddress(spot.getSpotAddress())
                     .spotName(spot.getSpotName())
-                    .category(spot.getSpotCategory().getCategoryName())
+                    .categoryId(spot.getSpotCategory().getCategoryId())
                     .imageUrl(imageUrl)
                     .spotScraps(spot.getSpotScraps())
                     .isScraped(isScraped)

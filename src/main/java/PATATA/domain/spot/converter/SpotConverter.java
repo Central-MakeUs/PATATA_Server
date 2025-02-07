@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -48,7 +50,9 @@ public class SpotConverter {
         Long spotId = (Long) result[0];
         Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(()->new SpotHandler(SPOT_NOT_FOUND));
-        Double distance = Math.round(((Number) result[12]).doubleValue() * 10.0) / 10.0;
+        Double distance = BigDecimal.valueOf(((Number) result[12]).doubleValue())
+                .setScale(3, RoundingMode.HALF_UP)
+                .doubleValue();
         List<SpotImage> images = spotImageRepository.findBySpot(spot);
         String representativeImageUrl = images.stream()
                 .filter(SpotImage::getIsRepresentative)

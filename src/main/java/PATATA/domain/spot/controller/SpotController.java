@@ -73,13 +73,12 @@ public class SpotController {
     public ApiResponse<SpotResponseDto.SearchListResponse> searchSpot(
             @RequestParam("spotName") String spotName,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "25") int size,
             @RequestParam(value = "latitude") Double latitude,
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
             @AuthenticationPrincipal Member member
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, 10);
         Page<SpotResponseDto.SearchResponse> searchResults = spotService.searchSpotsByName(
                 spotName, latitude, longitude, sortBy, pageable, member);
         return ApiResponse.onSuccess(SpotResponseDto.SearchListResponse.of(searchResults));
@@ -100,13 +99,12 @@ public class SpotController {
     public ApiResponse<SpotResponseDto.CategoryListResponse> getSpotsByCategory(
             @PathVariable("category_id") Long categoryId,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "latitude") Double latitude,
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
             @AuthenticationPrincipal Member member
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, 10);
         Page<SpotResponseDto.CategoryResponse> categoryResults = spotService.getSpotsByCategory(
                 categoryId, latitude, longitude, sortBy, pageable, member);
         return ApiResponse.onSuccess(SpotResponseDto.CategoryListResponse.of(categoryResults));
