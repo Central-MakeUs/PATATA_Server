@@ -175,17 +175,20 @@ public class SpotService {
     }
 
     public Page<SpotResponseDto.CategoryResponse> getSpotsByCategory(Long categoryId, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
 
+        if (categoryId != null) {
+            categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
+        }
         // 사용자 위치 Point 객체 생성
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
 
         if (sortBy.equals("DISTANCE")) {
-            return spotRepository.findByCategoryOrderByDistance(category.getCategoryId(), userLocation, pageable)
+            return spotRepository.findByCategoryOrderByDistance(categoryId, userLocation, pageable)
                     .map(result -> spotConverter.toCategoryResponse(result, member));
         } else if (sortBy.equals("RECOMMEND")) {
-            return spotRepository.findByCategoryOrderByScrap(category.getCategoryId(), userLocation, pageable)
+            return spotRepository.findByCategoryOrderByScrap(categoryId, userLocation, pageable)
                     .map(result -> spotConverter.toCategoryResponse(result, member));
         }
         throw new SpotHandler(INVALID_SORT_TYPE);
