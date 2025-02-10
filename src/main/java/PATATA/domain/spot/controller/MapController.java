@@ -56,4 +56,14 @@ public class MapController {
                 , minLatitude, minLongitude, maxLatitude, maxLongitude, userLatitude, userLongitude, member);
         return ApiResponse.onSuccess(spots);
     }
+
+    @Operation(summary = "반경 내 스팟 수 체크 API")
+    @GetMapping("/density")
+    public ApiResponse<String> checkSpotDensity(
+            @Parameter(description = "위도") @RequestParam(value = "latitude") Double latitude,
+            @Parameter(description = "경도") @RequestParam(value = "longitude") Double longitude
+    ) {
+        int spotCount = mapService.checkSpotDensity(latitude, longitude);
+        return ApiResponse.onSuccess("스팟 등록이 가능합니다. 현재 등록 스팟 수 : " + spotCount);
+    }
 }

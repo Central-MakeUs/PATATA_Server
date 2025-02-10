@@ -17,7 +17,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
     List<Spot> findByMember(Member member);
 
-    @Query("SELECT s FROM Spot s WHERE s.spotId = :spotId AND s.isDeleted = false")
+    @Query("SELECT s FROM Spot s WHERE s.spotId = :spotId AND s.deleted = false")
     Optional<Spot> findByIdAndDeletedFalse(@Param("spotId") Long spotId);
 
     //스팟 목록 검색(거리순)
@@ -26,7 +26,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
         ROUND(ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000, 3) as distance
         FROM spot s
         WHERE s.spot_name LIKE CONCAT('%', :spotName, '%')
-        AND s.is_deleted = false
+        AND s.deleted = false
         ORDER BY distance
         """,
             nativeQuery = true)
@@ -42,7 +42,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
         ROUND(ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000, 3) as distance
         FROM spot s
         WHERE s.spot_name LIKE CONCAT('%', :spotName, '%')
-        AND s.is_deleted = false
+        AND s.deleted = false
         ORDER BY s.spot_scraps DESC
         """,
             nativeQuery = true)
@@ -52,7 +52,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             Pageable pageable
     );
 
-    List<Spot> findAllByMemberOrderByCreatedAtDesc(Member member);
+    List<Spot> findAllByMemberAndDeletedFalseOrderByCreatedAtDesc(Member member);
 
     //스팟 카테고리 조회(추천순)
     @Query(value = """
@@ -60,7 +60,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
         ROUND(ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000, 3) as distance
         FROM spot s
         WHERE (:categoryId IS NULL OR s.category_id = :categoryId)
-        AND s.is_deleted = false
+        AND s.deleted = false
         ORDER BY s.spot_scraps DESC
         """,
             nativeQuery = true)
@@ -76,7 +76,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
         ROUND(ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000, 3) as distance
         FROM spot s
         WHERE (:categoryId IS NULL OR s.category_id = :categoryId)
-        AND s.is_deleted = false
+        AND s.deleted = false
         ORDER BY distance
         """,
             nativeQuery = true)
@@ -100,7 +100,8 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
                                     )),4326
                      ), s.spot_location)
             AND (:categoryId IS NULL OR s.category_id = :categoryId)
-            ORDER BY distance
+            AND s.deleted = false
+            ORDER BY s.spot_scraps DESC
             LIMIT :limit
             """
             , nativeQuery = true)
@@ -115,7 +116,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
     );
 
     //지도 내 스팟 검색(좌표x)
-    Optional<Spot> findTopBySpotNameContainingOrderBySpotScrapsDesc(String spotSName);
+    Optional<Spot> findTopBySpotNameContainingAndDeletedFalseOrderBySpotScrapsDesc(String spotSName);
 
     //지도 내 스팟 검색(좌표o)
     @Query(value = """
@@ -129,6 +130,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
                             :maxLng, ' ', :maxLat, ')'
                             )),4326
              ), s.spot_location)
+        AND s.deleted = false
         ORDER BY s.spot_scraps DESC
         LIMIT 1
         """
@@ -149,4 +151,19 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("spotId") Long spotId,
             @Param("userLatitude") Double userLatitude,
             @Param("userLongitude") Double userLongitude);
+
+    //반경 내 스팟 개수
+    @Query(value = """
+        SELECT COUNT(*) FROM spot s
+        WHERE ST_Distance_Sphere(
+            Point(ST_Y(s.spot_location), ST_X(s.spot_location)),
+            POINT(:longitude, :latitude)
+        ) <= :radius
+        AND s.deleted = false
+        """, nativeQuery = true)
+    Integer countSpotsWithinRadius(
+            @Param("latitude") Double latitude,
+            @Param("longitude") Double longitude,
+            @Param("radius") Double radius
+    );
 }

@@ -154,7 +154,7 @@ public class SpotService {
     }
 
     public List<ScrapResponseDto.SpotDto> getMySpots(Member member) {
-        List<Spot> mySpots = spotRepository.findAllByMemberOrderByCreatedAtDesc(member);
+        List<Spot> mySpots = spotRepository.findAllByMemberAndDeletedFalseOrderByCreatedAtDesc(member);
         return mySpots.stream()
                 .filter(spot -> !spot.isDeleted())
                 .map(spot -> {

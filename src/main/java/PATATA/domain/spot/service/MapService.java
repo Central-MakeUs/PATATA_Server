@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static PATATA.global.error.code.status.ErrorStatus.SPOT_NOT_FOUND;
+import static PATATA.global.error.code.status.ErrorStatus.*;
 
 @Service
 @Slf4j
@@ -91,11 +91,20 @@ public class MapService {
     private Spot findSpotByConditions(String spotName, Double minLatitude, Double minLongitude,
                                       Double maxLatitude, Double maxLongitude) {
         if (minLatitude == null || minLongitude == null || maxLatitude == null || maxLongitude == null) {
-            return spotRepository.findTopBySpotNameContainingOrderBySpotScrapsDesc(spotName)
-                    .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+            return spotRepository.findTopBySpotNameContainingAndDeletedFalseOrderBySpotScrapsDesc(spotName)
+                    .orElseThrow(() -> new SpotHandler(SPOT_CANNOT_SEARCH));
         }
         return spotRepository.findTopInBoundsByNameOrderByScrap(
                         spotName, minLatitude, minLongitude, maxLatitude, maxLongitude)
-                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+                .orElseThrow(() -> new SpotHandler(SPOT_CANNOT_SEARCH));
+    }
+
+    public int checkSpotDensity(Double latitude, Double longitude) {
+        int spotCount = spotRepository.countSpotsWithinRadius(latitude, longitude, 100.0);
+        if (spotCount == 25) {
+            throw new SpotHandler(TOO_MANY_SPOT);
+        } else {
+            return spotCount;
+        }
     }
 }
