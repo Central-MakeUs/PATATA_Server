@@ -15,6 +15,8 @@ public class MapResponseDto {
         private String spotName;
         private String spotAddress;
         private String spotAddressDetail;
+        private Double latitude;
+        private Double longitude;
         private Long categoryId;
         private List<String> tags;
         private String representativeImageUrl;
@@ -28,6 +30,8 @@ public class MapResponseDto {
                     .spotName(spot.getSpotName())
                     .spotAddress(spot.getSpotAddress())
                     .spotAddressDetail(spot.getSpotAddressDetail())
+                    .latitude(spot.getSpotLocation().getY())
+                    .longitude(spot.getSpotLocation().getX())
                     .categoryId(spot.getSpotCategory().getCategoryId())
                     .tags(tags)
                     .representativeImageUrl(representativeImageUrl)
