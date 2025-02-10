@@ -59,7 +59,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
         SELECT s.*,
         ROUND(ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000, 3) as distance
         FROM spot s
-        WHERE s.category_id = :categoryId
+        WHERE (:categoryId IS NULL OR s.category_id = :categoryId)
         AND s.is_deleted = false
         ORDER BY s.spot_scraps DESC
         """,
@@ -75,7 +75,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
         SELECT s.*,
         ROUND(ST_Distance_Sphere(Point(ST_Y(s.spot_location), ST_X(s.spot_location)), :userLocation) / 1000, 3) as distance
         FROM spot s
-        WHERE s.category_id = :categoryId
+        WHERE (:categoryId IS NULL OR s.category_id = :categoryId)
         AND s.is_deleted = false
         ORDER BY distance
         """,
