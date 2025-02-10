@@ -26,8 +26,7 @@ public class Scrap extends BaseEntity {
     @JoinColumn(name = "spot_id", nullable = false)
     private Spot spot;
 
-    @Column(nullable = false)
-    private boolean deleted = false;
+    private boolean deleted;
 
     public void delete() {
         this.deleted = true;

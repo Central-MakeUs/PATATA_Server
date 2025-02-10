@@ -46,11 +46,10 @@ public class Spot extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column(nullable = false)
-    private boolean isDeleted = false;
+    private boolean deleted;
 
     public void delete() {
-        this.isDeleted = true;
+        this.deleted = true;
     }
 
     public void updateSpot(String spotName, String spotDescription, String spotAddress, String spotAddressDetail, Category category) {

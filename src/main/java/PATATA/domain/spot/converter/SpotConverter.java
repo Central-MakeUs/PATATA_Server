@@ -42,6 +42,7 @@ public class SpotConverter {
                 .spotLocation(point)
                 .spotScraps(0)
                 .spotCategory(category)
+                .deleted(false)
                 .member(member)
                 .build();
     }
