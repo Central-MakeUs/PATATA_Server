@@ -97,7 +97,7 @@ public class SpotController {
     @Operation(summary = "카테고리별 스팟 조회 API")
     @GetMapping("/category")
     public ApiResponse<SpotResponseDto.CategoryListResponse> getSpotsByCategory(
-            @RequestParam(value = "category_id", required = false) Long categoryId,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "latitude") Double latitude,
             @RequestParam(value = "longitude") Double longitude,
