@@ -2,30 +2,23 @@ package PATATA.domain.spot.service;
 
 import PATATA.global.error.exception.S3ImageHandler;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.common.ImageBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static PATATA.global.error.code.status.ErrorStatus.*;
+import static PATATA.global.error.code.status.ErrorStatus.IMAGE_EMPTY;
+import static PATATA.global.error.code.status.ErrorStatus.S3_UPLOAD_FAIL;
 
 @Service
 @Slf4j
