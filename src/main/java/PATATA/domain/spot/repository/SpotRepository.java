@@ -166,4 +166,7 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
             @Param("longitude") Double longitude,
             @Param("radius") Double radius
     );
+
+    @Query(value = "SELECT * FROM spot s WHERE s.deleted = false ORDER BY RAND(CAST(DATE_FORMAT(CURRENT_DATE, '%Y%m%d') AS UNSIGNED))  LIMIT :limit", nativeQuery = true)
+    List<Spot> findRandomSpots(@Param("limit") int limit);
 }
