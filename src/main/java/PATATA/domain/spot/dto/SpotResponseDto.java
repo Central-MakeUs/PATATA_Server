@@ -205,6 +205,64 @@ public class SpotResponseDto {
     }
 
     @Getter
+    @Builder
+    public static class TodaySpotResponse {
+        private Long spotId;
+        private String spotAddress;
+        private String spotName;
+        private Long categoryId;
+        private String imageUrl;
+        private Boolean isScraped;    // 현재 사용자의 스크랩 여부
+        private List<String> tags;
+
+        public static TodaySpotResponse from(Spot spot, String imageUrl, Boolean isScraped, List<String> tags) {
+
+            return TodaySpotResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotAddress(spot.getSpotAddress())
+                    .spotName(spot.getSpotName())
+                    .categoryId(spot.getSpotCategory().getCategoryId())
+                    .imageUrl(imageUrl)
+                    .isScraped(isScraped)
+                    .tags(tags)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class TodaySpotListResponse {
+        private Long spotId;
+        private String spotName;
+        private String spotAddress;
+        private String spotAddressDetail;
+        private Long categoryId;
+        private Double distance;
+        private List<String> images;
+        private Boolean isScraped;
+        private List<String> tags;
+
+        public static TodaySpotListResponse from(Spot spot, Double distance, List<SpotImage> images, Boolean isScraped, List<String> tags) {
+
+            List<String> imageUrls = images.stream()
+                    .map(SpotImage::getImageUrl)
+                    .collect(Collectors.toList());
+
+            return TodaySpotListResponse.builder()
+                    .spotId(spot.getSpotId())
+                    .spotName(spot.getSpotName())
+                    .spotAddress(spot.getSpotAddress())
+                    .spotAddressDetail(spot.getSpotAddressDetail())
+                    .categoryId(spot.getSpotCategory().getCategoryId())
+                    .distance(distance)
+                    .images(imageUrls)
+                    .isScraped(isScraped)
+                    .tags(tags)
+                    .build();
+        }
+    }
+
+    @Getter
     @AllArgsConstructor
     @Builder
     public static class ReportResponse {

@@ -87,10 +87,10 @@ public class SpotController {
 
     @Operation(summary = "내가 작성한 스팟 조회 API")
     @GetMapping("/my-spots")
-    public ApiResponse<List<ScrapResponseDto.SpotDto>> getMySpots(
+    public ApiResponse<ScrapResponseDto.MySpotsResponseDto> getMySpots(
             @AuthenticationPrincipal Member member
     ) {
-        List<ScrapResponseDto.SpotDto> mySpots = spotService.getMySpots(member);
+        ScrapResponseDto.MySpotsResponseDto mySpots = spotService.getMySpots(member);
         return ApiResponse.onSuccess(mySpots);
     }
 
@@ -108,5 +108,25 @@ public class SpotController {
         Page<SpotResponseDto.CategoryResponse> categoryResults = spotService.getSpotsByCategory(
                 categoryId, latitude, longitude, sortBy, pageable, member);
         return ApiResponse.onSuccess(SpotResponseDto.CategoryListResponse.of(categoryResults));
+    }
+
+    @Operation(summary = "오늘의 추천 스팟(메인화면) API")
+    @GetMapping("/today")
+    public ApiResponse<List<SpotResponseDto.TodaySpotResponse>> getTodaySpot(
+            @AuthenticationPrincipal Member member
+    ) {
+        List<SpotResponseDto.TodaySpotResponse> recommendations = spotService.getTodaySpots(member);
+        return ApiResponse.onSuccess(recommendations);
+    }
+
+    @Operation(summary = "오늘의 추천 스팟(목록) API")
+    @GetMapping("/today/list")
+    public ApiResponse<List<SpotResponseDto.TodaySpotListResponse>> getTodaySpotList(
+            @RequestParam(value = "userLatitude") Double latitude,
+            @RequestParam(value = "userLongitude") Double longitude,
+            @AuthenticationPrincipal Member member
+    ) {
+        List<SpotResponseDto.TodaySpotListResponse> recommendations = spotService.getTodaySpotsList(latitude,longitude, member);
+        return ApiResponse.onSuccess(recommendations);
     }
 }

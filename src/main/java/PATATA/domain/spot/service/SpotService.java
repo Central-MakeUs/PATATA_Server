@@ -153,9 +153,9 @@ public class SpotService {
         throw new SpotHandler(INVALID_SORT_TYPE);
     }
 
-    public List<ScrapResponseDto.SpotDto> getMySpots(Member member) {
-        List<Spot> mySpots = spotRepository.findAllByMemberAndDeletedFalseOrderByCreatedAtDesc(member);
-        return mySpots.stream()
+    public ScrapResponseDto.MySpotsResponseDto getMySpots(Member member) {
+        List<ScrapResponseDto.SpotDto> spotDtos = spotRepository.findAllByMemberAndDeletedFalseOrderByCreatedAtDesc(member)
+                .stream()
                 .filter(spot -> !spot.isDeleted())
                 .map(spot -> {
                     List<SpotImage> images = spotImageRepository.findBySpot(spot);
@@ -172,6 +172,9 @@ public class SpotService {
                             .build();
                 })
                 .collect(Collectors.toList());
+
+        int totalSpots = spotDtos.size();
+        return new ScrapResponseDto.MySpotsResponseDto(totalSpots, spotDtos);
     }
 
     public Page<SpotResponseDto.CategoryResponse> getSpotsByCategory(Long categoryId, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
@@ -195,4 +198,53 @@ public class SpotService {
     }
 
 
+    public List<SpotResponseDto.TodaySpotResponse> getTodaySpots(Member member) {
+        List<Spot> randomSpots = spotRepository.findRandomSpots(5);
+
+        // 각 스팟을 DTO로 변환
+        return randomSpots.stream()
+                .map(spot -> {
+                    // 대표 이미지 URL 가져오기
+                    String imageUrl = spotImageRepository.findBySpot(spot).stream()
+                            .filter(SpotImage::getIsRepresentative)
+                            .findFirst()
+                            .map(SpotImage::getImageUrl)
+                            .orElse(null);
+
+                    // 스크랩 여부 확인
+                    Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
+
+                    // 태그 목록 가져오기
+                    List<String> tags = spotTagRepository.findBySpot(spot).stream()
+                            .map(spotTag -> spotTag.getTag().getTagName())
+                            .collect(Collectors.toList());
+
+                    return SpotResponseDto.TodaySpotResponse.from(spot, imageUrl, isScraped, tags);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<SpotResponseDto.TodaySpotListResponse> getTodaySpotsList(Double userLatitude, Double userLongitude, Member member) {
+        List<Spot> randomSpots = spotRepository.findRandomSpots(5);
+
+        // 각 스팟을 DTO로 변환
+        return randomSpots.stream()
+                .map(spot -> {
+                    List<SpotImage> images = spotImageRepository.findBySpot(spot);
+
+                    Double distance = spotRepository.calculateDistance(spot.getSpotId(), userLatitude, userLongitude);
+
+                    // 스크랩 여부 확인
+                    Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
+
+                    // 태그 목록 가져오기
+                    List<String> tags = spotTagRepository.findBySpot(spot).stream()
+                            .map(spotTag -> spotTag.getTag().getTagName())
+                            .collect(Collectors.toList());
+
+                    return SpotResponseDto.TodaySpotListResponse.from(spot, distance, images, isScraped, tags);
+                })
+                .collect(Collectors.toList());
+
+    }
 }

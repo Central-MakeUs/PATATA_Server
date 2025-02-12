@@ -3,6 +3,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 public class ScrapResponseDto {
 
     @Getter
@@ -15,6 +17,18 @@ public class ScrapResponseDto {
         public ToggleResponse(String message, int totalScraps) {
             this.message = message;
             this.totalScraps = totalScraps;
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class MySpotsResponseDto {
+        private int totalSpots;
+        private List<SpotDto> spots;
+
+        public MySpotsResponseDto(int totalSpots, List<SpotDto> spots) {
+            this.totalSpots = totalSpots;
+            this.spots = spots;
         }
     }
 
