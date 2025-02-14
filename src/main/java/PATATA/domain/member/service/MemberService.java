@@ -1,5 +1,6 @@
 package PATATA.domain.member.service;
 
+import PATATA.domain.member.dto.MemberProfileDto;
 import PATATA.domain.member.entity.Role;
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Scrap;
@@ -7,16 +8,20 @@ import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.repository.ReviewRepository;
 import PATATA.domain.spot.repository.ScrapRepository;
 import PATATA.domain.spot.repository.SpotRepository;
+import PATATA.domain.spot.service.S3ImageService;
 import PATATA.global.error.exception.JwtHandler;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.auth.jwt.service.JwtService;
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.repository.MemberRepository;
 import PATATA.auth.oauth.dto.LoginResponseDTO;
+import PATATA.global.error.exception.S3ImageHandler;
+import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -31,6 +36,7 @@ public class MemberService {
     private final SpotRepository spotRepository;
     private final ReviewRepository reviewRepository;
     private final ScrapRepository scrapRepository;
+    private final S3ImageService s3ImageService;
 
     //accessToken, refreshToken 발급
     @Transactional
@@ -89,6 +95,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
+    @Transactional
     public void deleteMember(Member member) {
         //스팟 삭제
         deleteSpot(member);
@@ -98,6 +105,7 @@ public class MemberService {
         deleteScrap(member);
         //멤버 역할 변경
         member.updateRole(Role.WITHDRAWAL);
+        memberRepository.save(member);
     }
 
     private void deleteSpot(Member member) {
@@ -116,5 +124,32 @@ public class MemberService {
         List<Scrap> scraps = scrapRepository.findByMember(member);
         scraps.forEach(Scrap::delete);
         scrapRepository.saveAll(scraps);
+    }
+
+    @Transactional
+    public String updateProfileImage(Member member, MultipartFile profileImage) {
+        if (profileImage.isEmpty()) {
+            throw new S3ImageHandler(IMAGE_EMPTY);
+        }
+        try {
+            String imageUrl = s3ImageService.upload(profileImage);
+            member.updateImage(imageUrl);
+            memberRepository.save(member);
+            return imageUrl;
+        } catch (Exception e) {
+            throw new SpotHandler(S3_UPLOAD_FAIL);
+        }
+    }
+
+    public MemberProfileDto getProfile(Member member) {
+
+        MemberProfileDto profileDto = MemberProfileDto.builder()
+                .memberId(member.getMemberId())
+                .nickName(member.getNickName())
+                .email(member.getEmail())
+                .profileImage(member.getProfileImage())
+                .build();
+
+        return profileDto;
     }
 }

@@ -9,6 +9,7 @@ import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.entity.*;
 import PATATA.domain.spot.repository.*;
 import PATATA.global.error.exception.ReportHandler;
+import PATATA.global.error.exception.S3ImageHandler;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,7 @@ public class SpotService {
 
     private void processSpotImages(List<SpotRequestDto.SpotImageRequest> images, Spot spot) {
         if (images == null || images.isEmpty()) {
-            return;
+            throw new S3ImageHandler(IMAGE_EMPTY);
         }
 
         List<SpotImage> spotImages = images.stream()
@@ -126,7 +127,8 @@ public class SpotService {
     public SpotResponseDto.DetailResponse getSpotDetail(Long spotId, Member member) {
         Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
-        Boolean isAuthor = spot.getMember().getMemberId().equals(member.getMemberId());
+        Boolean isAuthor = spot.getMember() != null && spot.getMember().getMemberId().equals(member.getMemberId());
+
         Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
         List<Review> reviews = reviewRepository.findBySpot(spot);
         List<Tag> tags = spotTagRepository.findBySpot(spot).stream()

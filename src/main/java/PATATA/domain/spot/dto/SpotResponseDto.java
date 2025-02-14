@@ -62,9 +62,9 @@ public class SpotResponseDto {
                     .map(review -> ReviewInfo.builder()
                             .reviewId(review.getReviewId())
                             .reviewText(review.getReviewText())
-                            .memberName(review.getMember().getNickName())
+                            .memberName(review.getMember() != null ? review.getMember().getNickName() : "알 수 없음")
                             .reviewDate(review.getCreatedAt())
-                            .isAuthor(review.getMember().getMemberId().equals(member.getMemberId()))
+                            .isAuthor(review.getMember() != null && review.getMember().getMemberId().equals(member.getMemberId()))
                             .build())
                     .collect(Collectors.toList());
 
@@ -85,7 +85,7 @@ public class SpotResponseDto {
                     .spotAddress(spot.getSpotAddress())
                     .spotAddressDetail(spot.getSpotAddressDetail())
                     .categoryId(spot.getSpotCategory().getCategoryId())
-                    .memberName(spot.getMember().getNickName())
+                    .memberName(spot.getMember() != null ? spot.getMember().getNickName() : "알 수 없음")
                     .images(images)
                     .tags(tagNames)
                     .reviewCount(reviewInfos.size())

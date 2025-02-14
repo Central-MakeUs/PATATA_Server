@@ -2,6 +2,7 @@ package PATATA.auth.oauth.service;
 
 import PATATA.auth.oauth.dto.*;
 import PATATA.domain.member.entity.LoginType;
+import PATATA.domain.member.entity.Role;
 import PATATA.global.error.code.status.ErrorStatus;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.global.error.exception.OAuthHandler;
@@ -89,6 +90,9 @@ public class OAuthService {
                     //이메일 중복인 경우
                     Member member = memberByEmail.get();
                     LoginType loginType = member.getLoginType();
+                    if (member.getRole() == Role.WITHDRAWAL) {
+                        throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
+                    }
                     if (!loginType.equals(LoginType.APPLE)) {
                         throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
                     }
@@ -138,6 +142,9 @@ public class OAuthService {
         if (memberByEmail.isPresent()) {
             Member member = memberByEmail.get();
             LoginType loginType = member.getLoginType();
+            if (member.getRole() == Role.WITHDRAWAL) {
+                throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
+            }
             if (!loginType.equals(LoginType.GOOGLE)) {
                 throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
             }

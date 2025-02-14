@@ -33,6 +33,8 @@ public class Member extends BaseEntity implements UserDetails {
         this.role = role;
     }
 
+    private String profileImage;
+
     private String nickName;
 
     private String email;
@@ -100,5 +102,9 @@ public class Member extends BaseEntity implements UserDetails {
 
     public void updateNickname(String newNickname) {
         this.nickName = newNickname;
+    }
+
+    public void updateImage(String imageUrl) {
+        this.profileImage = imageUrl;
     }
 }

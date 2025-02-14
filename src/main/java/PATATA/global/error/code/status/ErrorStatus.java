@@ -38,6 +38,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NICKNAME_ALREADY_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4001", "이미 사용중인 닉네임입니다."),
     MEMBER_NOT_MATCH(HttpStatus.BAD_REQUEST, "MEMBER4002", "사용자가 일치하지 않습니다."),
     MEMBER_DELETE_FAILED(HttpStatus.BAD_REQUEST, "MEMBER4003", "회원 탈퇴에 실패하였습니다."),
+    MEMBER_ALREADY_WITHDRAW(HttpStatus.BAD_REQUEST, "MEMBER4004", "탈퇴한 회원입니다."),
 
     //Spot 에러
     SPOT_NOT_FOUND(HttpStatus.BAD_REQUEST, "SPOT4000", "삭제되었거나 존재하지 않는 스팟입니다."),
