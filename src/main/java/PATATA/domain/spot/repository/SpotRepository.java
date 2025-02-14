@@ -154,14 +154,14 @@ public interface SpotRepository extends JpaRepository<Spot, Long> {
 
     //반경 내 스팟 개수
     @Query(value = """
-        SELECT COUNT(*) FROM spot s
+        SELECT s.* FROM spot s
         WHERE ST_Distance_Sphere(
             Point(ST_Y(s.spot_location), ST_X(s.spot_location)),
             POINT(:longitude, :latitude)
         ) <= :radius
         AND s.deleted = false
         """, nativeQuery = true)
-    Integer countSpotsWithinRadius(
+    List<Spot> findSpotsWithinRadius(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("radius") Double radius

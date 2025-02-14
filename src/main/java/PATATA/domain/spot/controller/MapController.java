@@ -2,6 +2,8 @@ package PATATA.domain.spot.controller;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.dto.MapResponseDto;
+import PATATA.domain.spot.entity.Spot;
+import PATATA.domain.spot.repository.SpotRepository;
 import PATATA.domain.spot.service.MapService;
 import PATATA.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +24,7 @@ import static org.bouncycastle.asn1.x500.style.RFC4519Style.member;
 public class MapController {
 
     private final MapService mapService;
+    private final SpotRepository spotRepository;
 
     @Operation(summary = "지도 내 스팟 불러오기 API")
     @GetMapping("/in-bound")
@@ -59,11 +62,21 @@ public class MapController {
 
     @Operation(summary = "반경 내 스팟 수 체크 API")
     @GetMapping("/density")
-    public ApiResponse<String> checkSpotDensity(
+    public ApiResponse<Object> checkSpotDensity(
+            @AuthenticationPrincipal Member member,
             @Parameter(description = "위도") @RequestParam(value = "latitude") Double latitude,
             @Parameter(description = "경도") @RequestParam(value = "longitude") Double longitude
     ) {
-        int spotCount = mapService.checkSpotDensity(latitude, longitude);
-        return ApiResponse.onSuccess("스팟 등록이 가능합니다. 현재 등록 스팟 수 : " + spotCount);
+        List<Spot> nearbySpots = spotRepository.findSpotsWithinRadius(latitude, longitude, 100.0);
+        int spotCount = nearbySpots.size();
+        if (spotCount == 25) {
+            List<MapResponseDto.SpotLocationInfo> spotLocations =
+                    nearbySpots.stream()
+                            .map(MapResponseDto.SpotLocationInfo::from)
+                            .toList();
+            return ApiResponse.onFailure("SPOT4004", "현재 등록된 스팟이 너무 많습니다.", spotLocations);
+        } else {
+            return ApiResponse.onSuccess("스팟 등록이 가능합니다. 현재 등록 스팟 수 : " + spotCount);
+        }
     }
 }

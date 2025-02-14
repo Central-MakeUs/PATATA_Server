@@ -11,6 +11,7 @@ import PATATA.domain.spot.repository.SpotImageRepository;
 import PATATA.domain.spot.repository.SpotRepository;
 import PATATA.domain.spot.repository.SpotTagRepository;
 import PATATA.global.error.exception.SpotHandler;
+import PATATA.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
@@ -97,14 +98,5 @@ public class MapService {
         return spotRepository.findTopInBoundsByNameOrderByScrap(
                         spotName, minLatitude, minLongitude, maxLatitude, maxLongitude)
                 .orElseThrow(() -> new SpotHandler(SPOT_CANNOT_SEARCH));
-    }
-
-    public int checkSpotDensity(Double latitude, Double longitude) {
-        int spotCount = spotRepository.countSpotsWithinRadius(latitude, longitude, 100.0);
-        if (spotCount == 25) {
-            throw new SpotHandler(TOO_MANY_SPOT);
-        } else {
-            return spotCount;
-        }
     }
 }

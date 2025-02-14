@@ -40,4 +40,22 @@ public class MapResponseDto {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class SpotLocationInfo {
+        private Long spotId;
+        private String spotName;
+        private Double latitude;
+        private Double longitude;
+
+        public static SpotLocationInfo from(Spot spot) {
+            return SpotLocationInfo.builder()
+                    .spotId(spot.getSpotId())
+                    .spotName(spot.getSpotName())
+                    .latitude(spot.getSpotLocation().getY())
+                    .longitude(spot.getSpotLocation().getX())
+                    .build();
+        }
+    }
 }
