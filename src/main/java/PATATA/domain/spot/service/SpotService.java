@@ -46,29 +46,66 @@ public class SpotService {
     public SpotResponseDto.CreateResponse createSpot(SpotRequestDto.CreateRequest requestDTO, Member member) {
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
-        Point point = geometryFactory.createPoint(new Coordinate(requestDTO.getLongitude(), requestDTO.getLatitude()));
-        point.setSRID(4326);
+        Point point = createPoint(requestDTO.getLongitude(), requestDTO.getLatitude());
 
         Spot spot = SpotConverter.toEntity(requestDTO, point, category, member);
         Spot savedSpot = spotRepository.save(spot);
 
-        if (requestDTO.getImages() != null && !requestDTO.getImages().isEmpty()) {
-            List<SpotImage> spotImages = requestDTO.getImages().stream()
-                    .map(imageRequest -> {
+        try {
+            // 이미지 처리
+            processSpotImages(requestDTO.getImages(), savedSpot);
+            // 태그 처리
+            processSpotTags(requestDTO.getTags(), savedSpot);
+        } catch (Exception e) {
+            // 이미지나 태그 처리 실패 시 롤백을 위한 예외 발생
+            log.error(e.getMessage(), e);
+            throw new SpotHandler(SPOT_UPLOAD_FAIL);
+        }
+
+        return SpotResponseDto.CreateResponse.from(savedSpot);
+    }
+
+    private Point createPoint(Double longitude, Double latitude) {
+        try {
+            Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+            point.setSRID(4326);
+            return point;
+        } catch (Exception e) {
+            throw new SpotHandler(INVALID_COORDINATES);
+        }
+    }
+
+    private void processSpotImages(List<SpotRequestDto.SpotImageRequest> images, Spot spot) {
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+
+        List<SpotImage> spotImages = images.stream()
+                .map(imageRequest -> {
+                    try {
                         String imageUrl = s3Service.upload(imageRequest.getFile());
                         return SpotImage.builder()
-                                .spot(savedSpot)
+                                .spot(spot)
                                 .imageUrl(imageUrl)
                                 .isRepresentative(imageRequest.getIsRepresentative())
                                 .sequence(imageRequest.getSequence())
                                 .build();
-                    })
-                    .collect(Collectors.toList());
-            spotImageRepository.saveAll(spotImages);
+                    } catch (Exception e) {
+                        throw new SpotHandler(S3_UPLOAD_FAIL);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        spotImageRepository.saveAll(spotImages);
+    }
+
+    private void processSpotTags(List<String> tags, Spot spot) {
+        if (tags == null || tags.isEmpty()) {
+            return;
         }
 
-        if (requestDTO.getTags() != null && !requestDTO.getTags().isEmpty()) {
-            requestDTO.getTags().forEach(tagName -> {
+        tags.forEach(tagName -> {
+            try {
                 Tag tag = tagRepository.findByTagName(tagName)
                         .orElseGet(() -> tagRepository.save(
                                 Tag.builder()
@@ -76,13 +113,14 @@ public class SpotService {
                                         .build()
                         ));
                 SpotTag spotTag = SpotTag.builder()
-                        .spot(savedSpot)
+                        .spot(spot)
                         .tag(tag)
                         .build();
                 spotTagRepository.save(spotTag);
-            });
-        }
-        return SpotResponseDto.CreateResponse.from(savedSpot);
+            } catch (Exception e) {
+                throw new SpotHandler(SPOT_UPLOAD_FAIL);
+            }
+        });
     }
 
     public SpotResponseDto.DetailResponse getSpotDetail(Long spotId, Member member) {
@@ -95,7 +133,7 @@ public class SpotService {
                 .map(SpotTag::getTag)
                 .collect(Collectors.toList());
         List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
-        return SpotResponseDto.DetailResponse.from(spot, isAuthor, isScraped, reviews, tags, spotImages);
+        return SpotResponseDto.DetailResponse.from(spot, isAuthor, isScraped, reviews, tags, spotImages, member);
     }
 
     @Transactional

@@ -2,12 +2,14 @@ package PATATA.domain.spot.dto;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.spot.entity.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,9 +21,10 @@ public class SpotResponseDto {
     public static class CreateResponse {
         private Long spotId;
         private String spotName;
+        private String nickName;
 
         public static CreateResponse from(Spot spot) {
-            return new CreateResponse(spot.getSpotId(), spot.getSpotName());
+            return new CreateResponse(spot.getSpotId(), spot.getSpotName(), spot.getMember().getNickName());
         }
     }
 
@@ -49,14 +52,19 @@ public class SpotResponseDto {
             private Long reviewId;
             private String memberName;
             private String reviewText;
+            @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+            private LocalDateTime reviewDate;
+            private Boolean isAuthor;
         }
 
-        public static DetailResponse from(Spot spot, Boolean isAuthor, Boolean isScraped, List<Review> reviews, List<Tag> tags, List<SpotImage> spotImages) {
+        public static DetailResponse from(Spot spot, Boolean isAuthor, Boolean isScraped, List<Review> reviews, List<Tag> tags, List<SpotImage> spotImages, Member member) {
             List<ReviewInfo> reviewInfos = reviews.stream()
                     .map(review -> ReviewInfo.builder()
                             .reviewId(review.getReviewId())
                             .reviewText(review.getReviewText())
                             .memberName(review.getMember().getNickName())
+                            .reviewDate(review.getCreatedAt())
+                            .isAuthor(review.getMember().getMemberId().equals(member.getMemberId()))
                             .build())
                     .collect(Collectors.toList());
 
