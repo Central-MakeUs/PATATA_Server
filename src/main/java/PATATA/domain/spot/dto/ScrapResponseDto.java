@@ -10,13 +10,15 @@ public class ScrapResponseDto {
     @Getter
     @NoArgsConstructor
     public static class ToggleResponse {
-        private String message;
+        private Long spotId;
         private int totalScraps;
+        private String message;
 
         @Builder
-        public ToggleResponse(String message, int totalScraps) {
-            this.message = message;
+        public ToggleResponse(Long spotId, int totalScraps, String message) {
+            this.spotId = spotId;
             this.totalScraps = totalScraps;
+            this.message = message;
         }
     }
 

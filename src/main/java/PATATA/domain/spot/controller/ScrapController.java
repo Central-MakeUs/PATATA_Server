@@ -20,13 +20,13 @@ public class ScrapController {
     private final ScrapService scrapService;
 
     @Operation(summary = "스팟 스크랩/취소 토글 API")
-    @PatchMapping("/{spot_id}")
-    public ApiResponse<ScrapResponseDto.ToggleResponse> toggleScrapTips(
+    @PatchMapping("/toggle")
+    public ApiResponse<List<ScrapResponseDto.ToggleResponse>> toggleScrapTips(
             @AuthenticationPrincipal Member member,
-            @PathVariable("spot_id") Long spotId
+            @RequestBody List<Long> spotIds
     ) {
-        ScrapResponseDto.ToggleResponse result = scrapService.toggleScrapSpot(spotId, member);
-        return ApiResponse.onSuccess(result);
+        List<ScrapResponseDto.ToggleResponse> results = scrapService.toggleScrapSpot(spotIds, member);
+        return ApiResponse.onSuccess(results);
     }
 
     @Operation(summary = "스크랩한 스팟 목록 조회 API")

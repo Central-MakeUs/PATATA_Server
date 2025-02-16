@@ -31,36 +31,40 @@ public class ScrapService {
     private final ScrapRepository scrapRepository;
     private final SpotImageRepository spotImageRepository;
 
-    public ScrapResponseDto.ToggleResponse toggleScrapSpot(Long spotId, Member member) {
-        Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
-                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
-        try {
-            Optional<Scrap> scrap = scrapRepository.findBySpotAndMember(spot, member);
+    public List<ScrapResponseDto.ToggleResponse> toggleScrapSpot(List<Long> spotIds, Member member) {
+        return spotIds.stream()
+                .map(spotId -> {
+                    Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
+                            .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+                    try {
+                        Optional<Scrap> scrap = scrapRepository.findBySpotAndMember(spot, member);
 
-            if(scrap.isPresent()) {
-                Scrap existingScrap = scrap.get();
-                if(existingScrap.isDeleted()) {
-                    existingScrap.restore(); // deleted = false로 설정
-                    spot.incrementScrapCount();
-                    return new ScrapResponseDto.ToggleResponse("스크랩되었습니다", spot.getSpotScraps());
-                } else {
-                    existingScrap.delete();
-                    spot.decrementScrapCount();
-                    return new ScrapResponseDto.ToggleResponse("스크랩이 취소되었습니다", spot.getSpotScraps());
-                }
-            } else {
-                Scrap newScrap = Scrap.builder()
-                        .spot(spot)
-                        .member(member)
-                        .deleted(false)
-                        .build();
-                scrapRepository.save(newScrap);
-                spot.incrementScrapCount();
-                return new ScrapResponseDto.ToggleResponse("스크랩되었습니다", spot.getSpotScraps());
-            }
-        } catch (DataIntegrityViolationException e) {
-            throw new ScrapHandler(SCRAP_FAIL);
-        }
+                        if (scrap.isPresent()) {
+                            Scrap existingScrap = scrap.get();
+                            if (existingScrap.isDeleted()) {
+                                existingScrap.restore(); // deleted = false로 설정
+                                spot.incrementScrapCount();
+                                return new ScrapResponseDto.ToggleResponse(spotId, spot.getSpotScraps(), "스크랩되었습니다");
+                            } else {
+                                existingScrap.delete();
+                                spot.decrementScrapCount();
+                                return new ScrapResponseDto.ToggleResponse(spotId, spot.getSpotScraps(),"스크랩이 취소되었습니다");
+                            }
+                        } else {
+                            Scrap newScrap = Scrap.builder()
+                                    .spot(spot)
+                                    .member(member)
+                                    .deleted(false)
+                                    .build();
+                            scrapRepository.save(newScrap);
+                            spot.incrementScrapCount();
+                            return new ScrapResponseDto.ToggleResponse(spotId, spot.getSpotScraps(), "스크랩되었습니다");
+                        }
+                    } catch (DataIntegrityViolationException e) {
+                        throw new ScrapHandler(SCRAP_FAIL);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     public List<ScrapResponseDto.SpotDto> getScrapSpots(Member member) {
