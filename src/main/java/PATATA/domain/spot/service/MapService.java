@@ -48,14 +48,14 @@ public class MapService {
                     Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                             .orElseThrow(()->new SpotHandler(SPOT_NOT_FOUND));
                     List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
-//                    List<String> imageUrls = spotImages.stream()
-//                            .map(SpotImage::getImageUrl)
-//                            .collect(Collectors.toList());
-                    String representativeImageUrl = spotImages.stream()
-                            .filter(SpotImage::getIsRepresentative)
-                            .findFirst()
+                    List<String> imageUrls = spotImages.stream()
                             .map(SpotImage::getImageUrl)
-                            .orElse(null);
+                            .toList();
+//                    String representativeImageUrl = spotImages.stream()
+//                            .filter(SpotImage::getIsRepresentative)
+//                            .findFirst()
+//                            .map(SpotImage::getImageUrl)
+//                            .orElse(null);
                     List<SpotTag> spotTags = spotTagRepository.findBySpot(spot);
                     List<String> tags = spotTags.stream()
                             .map(spotTag -> spotTag.getTag().getTagName())
@@ -63,7 +63,7 @@ public class MapService {
                     Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
                     Double distance = (Double) result[12];
 
-                    return MapResponseDto.InBoundsResponse.from(spot, representativeImageUrl, tags, isScraped, distance);
+                    return MapResponseDto.InBoundsResponse.from(spot, imageUrls, tags, isScraped, distance);
                 })
                 .collect(Collectors.toList());
     }
@@ -71,21 +71,21 @@ public class MapService {
     public MapResponseDto.InBoundsResponse getSpotSearched(String spotName, Double minLatitude, Double minLongitude, Double maxLatitude, Double maxLongitude, Double userLatitude, Double userLongitude, Member member) {
         Spot spotSearched = findSpotByConditions(spotName, minLatitude, minLongitude, maxLatitude, maxLongitude);
         List<SpotImage> spotImages = spotImageRepository.findBySpot(spotSearched);
-//        List<String> imageUrls = spotImages.stream()
-//                .map(SpotImage::getImageUrl)
-//                .collect(Collectors.toList());
-        String representativeImageUrl = spotImages.stream()
-                .filter(SpotImage::getIsRepresentative)
-                .findFirst()
+        List<String> imageUrls = spotImages.stream()
                 .map(SpotImage::getImageUrl)
-                .orElse(null);
+                .toList();
+//        String representativeImageUrl = spotImages.stream()
+//                .filter(SpotImage::getIsRepresentative)
+//                .findFirst()
+//                .map(SpotImage::getImageUrl)
+//                .orElse(null);
         List<SpotTag> spotTags = spotTagRepository.findBySpot(spotSearched);
         List<String> tags = spotTags.stream()
                 .map(spotTag -> spotTag.getTag().getTagName())
                 .collect(Collectors.toList());
         Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spotSearched);
         Double distance = spotRepository.calculateDistance(spotSearched.getSpotId(), userLatitude, userLongitude);
-        return MapResponseDto.InBoundsResponse.from(spotSearched, representativeImageUrl, tags, isScraped, distance);
+        return MapResponseDto.InBoundsResponse.from(spotSearched, imageUrls, tags, isScraped, distance);
     }
 
     // 조건에 따른 스팟 검색

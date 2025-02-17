@@ -155,8 +155,16 @@ public class SpotService {
                 request.getSpotDescription(),
                 request.getSpotAddress(),
                 request.getSpotAddressDetail(),
-                category
+                category,
+                createPoint(request.getLongitude(), request.getLatitude())
         );
+
+        List<Tag> tags = request.getTags().stream()
+                .map(name -> tagRepository.findByTagName(name)
+                        .orElseGet(() -> tagRepository.save(Tag.builder().tagName(name).build())))
+                .collect(Collectors.toList());
+        spot.updateTags(tags);
+
         return SpotResponseDto.UpdateResponse.from(spot, category);
     }
 

@@ -69,7 +69,7 @@ public class MapController {
     ) {
         List<Spot> nearbySpots = spotRepository.findSpotsWithinRadius(latitude, longitude, 100.0);
         int spotCount = nearbySpots.size();
-        if (spotCount == 25) {
+        if (spotCount >= 25) {
             List<MapResponseDto.SpotLocationInfo> spotLocations =
                     nearbySpots.stream()
                             .map(MapResponseDto.SpotLocationInfo::from)

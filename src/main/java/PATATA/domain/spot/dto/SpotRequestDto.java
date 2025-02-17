@@ -88,6 +88,12 @@ public class SpotRequestDto {
 
         private String spotAddressDetail;
 
+        private Double latitude;
+
+        private Double longitude;
+
+        private List<String> tags;
+
         private Long categoryId;
     }
 
