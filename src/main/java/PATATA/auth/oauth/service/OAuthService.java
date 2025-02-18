@@ -77,36 +77,35 @@ public class OAuthService {
             Claims claims = validateAndGetClaims(appleLoginRequestDto.getIdentityToken());
             String sub = claims.getSubject();
             String email = claims.get(EMAIL_CLAIM, String.class);
-            if (email == null) {
-                throw new OAuthHandler(MEMBER_NOT_FOUND);
-            }
+
             log.info("sub: {}", sub);
             log.info("email: {}", email);
 
-            if (email != null) {
-                // 토큰에 이메일이 있는 경우
-                Optional<Member> memberByEmail = memberRepository.findByEmail(email);
-                if (memberByEmail.isPresent()) {
-                    //이메일 중복인 경우
-                    Member member = memberByEmail.get();
-                    LoginType loginType = member.getLoginType();
-                    if (member.getRole() == Role.WITHDRAWAL) {
-                        throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
-                    }
-                    if (!loginType.equals(LoginType.APPLE)) {
-                        throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
-                    }
-                    return memberService.createToken(member);
-                } else {
-                    // 이메일 중복이 아닌 경우(새 멤버 생성)
-                    Member newMember = memberRepository.save(MemberConverter.toAppleMember(sub, email));
-                    return memberService.createToken(newMember);
-                }
-            } else {
-                // 토큰에 이메일이 없는 경우 sub로 회원 찾기(이미 로그인 된 회원)
+            if (email == null) {
+                // 토큰에 이메일이 없는 경우 sub로 회원 찾기
                 Member member = memberRepository.findByAppleSub(sub)
                         .orElseThrow(() -> new MemberHandler(MEMBER_NOT_FOUND));
                 return memberService.createToken(member);
+            }
+
+            // 토큰에 이메일이 있는 경우
+            Optional<Member> memberByEmail = memberRepository.findByEmail(email);
+            if (memberByEmail.isPresent()) {
+                //이메일 중복인 경우
+                Member member = memberByEmail.get();
+                LoginType loginType = member.getLoginType();
+                if (member.getRole() == Role.WITHDRAWAL) {
+                    log.info("멤버 role: {}", member.getRole());
+                    throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
+                }
+                if (!loginType.equals(LoginType.APPLE)) {
+                    throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
+                }
+                return memberService.createToken(member);
+            } else {
+                // 이메일 중복이 아닌 경우(새 멤버 생성)
+                Member newMember = memberRepository.save(MemberConverter.toAppleMember(sub, email));
+                return memberService.createToken(newMember);
             }
         }
         catch (MemberHandler e) {
