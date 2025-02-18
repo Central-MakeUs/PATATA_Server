@@ -179,9 +179,10 @@ public class OAuthService {
         try {
             String clientSecret = appleClientSecretGenerator.createClientSecret();
             log.info("여기1");
-            String refreshToken = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
+            AppleTokenDto appleTokenDto = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
+            String refreshToken = appleTokenDto.refreshToken();
             log.info("여기2");
-            String idToken = appleOAuthProvider.getAppleIdToken(code, clientSecret);
+            String idToken = appleTokenDto.idToken();
             log.info("여기3");
             Claims claims = validateAndGetClaims(idToken);
 
