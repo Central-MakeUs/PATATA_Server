@@ -178,15 +178,19 @@ public class OAuthService {
     public void appleDelete(Member member, String code) {
         try {
             String clientSecret = appleClientSecretGenerator.createClientSecret();
+            log.info("여기1");
             String refreshToken = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
-            String idToken = appleOAuthProvider.getAppleIdToken(code, clientSecret);
-            Claims claims = validateAndGetClaims(idToken);
-            String sub = claims.getSubject();
-
-            // 회원 정보 일치 검사
-            if (!sub.equals(member.getAppleSub())) {
-                throw new MemberHandler(MEMBER_NOT_MATCH);
-            }
+            log.info("여기2");
+            //String idToken = appleOAuthProvider.getAppleIdToken(code, clientSecret);
+            log.info("여기3");
+//            Claims claims = validateAndGetClaims(idToken);
+//
+//            String sub = claims.getSubject();
+//
+//            // 회원 정보 일치 검사
+//            if (!sub.equals(member.getAppleSub())) {
+//                throw new MemberHandler(MEMBER_NOT_MATCH);
+//            }
 
             // 연결 끊기
             AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
@@ -200,6 +204,7 @@ public class OAuthService {
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Apple Revoke Error");
         } catch (Exception e) {
+            log.error("Apple Revoke Error: {}", e.getMessage());
             throw new MemberHandler(MEMBER_DELETE_FAILED);
         }
 
