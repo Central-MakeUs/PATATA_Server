@@ -181,16 +181,16 @@ public class OAuthService {
             log.info("여기1");
             String refreshToken = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
             log.info("여기2");
-            //String idToken = appleOAuthProvider.getAppleIdToken(code, clientSecret);
+            String idToken = appleOAuthProvider.getAppleIdToken(code, clientSecret);
             log.info("여기3");
-//            Claims claims = validateAndGetClaims(idToken);
-//
-//            String sub = claims.getSubject();
-//
-//            // 회원 정보 일치 검사
-//            if (!sub.equals(member.getAppleSub())) {
-//                throw new MemberHandler(MEMBER_NOT_MATCH);
-//            }
+            Claims claims = validateAndGetClaims(idToken);
+
+            String sub = claims.getSubject();
+
+            // 회원 정보 일치 검사
+            if (!sub.equals(member.getAppleSub())) {
+                throw new MemberHandler(MEMBER_NOT_MATCH);
+            }
 
             // 연결 끊기
             AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
