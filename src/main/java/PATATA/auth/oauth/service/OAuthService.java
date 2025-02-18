@@ -85,6 +85,10 @@ public class OAuthService {
                 // 토큰에 이메일이 없는 경우 sub로 회원 찾기
                 Member member = memberRepository.findByAppleSub(sub)
                         .orElseThrow(() -> new MemberHandler(MEMBER_NOT_FOUND));
+                if (member.getRole() == Role.WITHDRAWAL) {
+                    log.info("멤버 role: {}", member.getRole());
+                    throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
+                }
                 return memberService.createToken(member);
             }
 
