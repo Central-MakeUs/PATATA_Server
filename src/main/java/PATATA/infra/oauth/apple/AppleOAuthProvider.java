@@ -27,7 +27,7 @@ public class AppleOAuthProvider {
                     .build();
             log.info("Apple Token Request: {}", appleTokenRequest);
 
-            AppleTokenResponse appleTokenResponse = appleAuthClient.findAppleToken(appleTokenRequest);
+            AppleTokenResponse appleTokenResponse = appleAuthClient.findAppleToken(appleTokenRequest.getAuthorization_code(), appleTokenRequest.getClient_id(), appleTokenRequest.getClient_secret(), appleTokenRequest.getGrant_type());
             log.info("Apple Token Response: {}", appleTokenResponse);
 
             return appleTokenResponse.refreshToken();
@@ -45,7 +45,8 @@ public class AppleOAuthProvider {
                 .grant_type("authorization_code")
                 .build();
 
-        return appleAuthClient.findAppleToken(appleTokenRequest).idToken();
+        AppleTokenResponse appleTokenResponse = appleAuthClient.findAppleToken(appleTokenRequest.getAuthorization_code(), appleTokenRequest.getClient_id(), appleTokenRequest.getClient_secret(), appleTokenRequest.getGrant_type());
+        return appleTokenResponse.idToken();
     }
 }
 

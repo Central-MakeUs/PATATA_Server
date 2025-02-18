@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 
 @FeignClient(name = "appleAuthClient", url = "https://appleid.apple.com/auth")
 public interface AppleAuthClient {
@@ -17,8 +18,14 @@ public interface AppleAuthClient {
     ApplePublicKeyResponse getAppleAuthPublicKey();
 
     @PostMapping(value = "/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    AppleTokenResponse findAppleToken(@RequestBody AppleTokenRequest request);
+    AppleTokenResponse findAppleToken(@RequestPart(value = "code") String code,
+                                      @RequestPart(value = "client_id") String client_id,
+                                      @RequestPart(value = "client_secret") String client_secret,
+                                      @RequestPart(value = "grant_type") String grant_type);
 
     @PostMapping(value = "/revoke", consumes = "application/x-www-form-urlencoded")
-    void revoke(AppleRevokeRequest request);
+    void revoke(@RequestPart(value = "token") String token,
+                @RequestPart(value = "client_id") String client_id,
+                @RequestPart(value = "client_secret") String client_secret,
+                @RequestPart(value = "token_type_hint") String token_type_hint);
 }

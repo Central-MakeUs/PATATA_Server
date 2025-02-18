@@ -197,9 +197,9 @@ public class OAuthService {
                     .client_id(appleClientId)
                     .refresh_token(refreshToken)
                     .client_secret(clientSecret)
-                    .token_type("REFRESH_TOKEN")
+                    .token_type("refresh_token")
                     .build();
-            appleAuthClient.revoke(appleRevokeRequest);
+            appleAuthClient.revoke(appleRevokeRequest.getRefresh_token(), appleRevokeRequest.getClient_id(), appleRevokeRequest.getClient_secret(), appleRevokeRequest.getToken_type());
             memberService.deleteMember(member);
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Apple Revoke Error");
