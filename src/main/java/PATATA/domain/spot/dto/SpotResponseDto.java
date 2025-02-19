@@ -39,6 +39,8 @@ public class SpotResponseDto {
         private String spotDescription;
         private String spotAddress;
         private String spotAddressDetail;
+        private Double latitude;
+        private Double longitude;
         private Long categoryId;
         private String memberName;
         private List<String> images;
@@ -84,6 +86,8 @@ public class SpotResponseDto {
                     .spotDescription(spot.getSpotDescription())
                     .spotAddress(spot.getSpotAddress())
                     .spotAddressDetail(spot.getSpotAddressDetail())
+                    .latitude(spot.getSpotLocation().getY())
+                    .longitude(spot.getSpotLocation().getX())
                     .categoryId(spot.getSpotCategory().getCategoryId())
                     .memberName(spot.getMember() != null ? spot.getMember().getNickName() : "알 수 없음")
                     .images(images)
