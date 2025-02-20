@@ -129,6 +129,7 @@ public class MemberService {
     @Transactional
     public String updateProfileImage(Member member, MultipartFile profileImage) {
         if (profileImage.isEmpty()) {
+            log.info("애초에 이미지가 첨부안됐음");
             throw new S3ImageHandler(IMAGE_EMPTY);
         }
         try {

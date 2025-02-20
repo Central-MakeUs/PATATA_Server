@@ -33,6 +33,7 @@ public class S3ImageService {
     public String upload(MultipartFile image) {
         //입력받은 이미지 파일이 빈 파일인지 검증
         if(image.isEmpty() || Objects.isNull(image.getOriginalFilename())){
+            log.info("s3 upload image is empty");
             throw new S3ImageHandler(IMAGE_EMPTY);
         }
         return uploadImage(image);
