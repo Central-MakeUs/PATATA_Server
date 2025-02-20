@@ -59,7 +59,7 @@ public class SpotConverter {
                 .map(SpotImage::getImageUrl)
                 .orElse(null);
         Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
-        Integer reviews = reviewRepository.findBySpot(spot).size();
+        Integer reviews = reviewRepository.findBySpotAndDeletedFalse(spot).size();
         return SpotResponseDto.SearchResponse.from(
                 spot, representativeImageUrl, isScraped, reviews, distance);
     }
@@ -75,7 +75,7 @@ public class SpotConverter {
                 .map(SpotImage::getImageUrl)
                 .orElse(null);
         Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
-        Integer reviews = reviewRepository.findBySpot(spot).size();
+        Integer reviews = reviewRepository.findBySpotAndDeletedFalse(spot).size();
         List<SpotTag> spotTags = spotTagRepository.findBySpot(spot);
         List<String> tags = spotTags.stream()
                 .map(spotTag -> spotTag.getTag().getTagName())
