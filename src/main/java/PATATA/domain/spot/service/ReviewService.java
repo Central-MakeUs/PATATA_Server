@@ -1,12 +1,14 @@
 package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
+import PATATA.domain.member.entity.Role;
 import PATATA.domain.spot.dto.ReviewRequestDto;
 import PATATA.domain.spot.dto.ReviewResponseDto;
 import PATATA.domain.spot.entity.Review;
 import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.repository.ReviewRepository;
 import PATATA.domain.spot.repository.SpotRepository;
+import PATATA.global.error.exception.ReportHandler;
 import PATATA.global.error.exception.ReviewHandler;
 import PATATA.global.error.exception.SpotHandler;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,12 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponseDto createReview(ReviewRequestDto requestDto, Member member) {
+
+        // 신고된 사용자 체크
+        if (member.getRole().equals(Role.REPORTED)) {
+            throw new ReportHandler(MEMBER_IS_REPORTED);
+        }
+
         Spot spot = spotRepository.findByIdAndDeletedFalse(requestDto.getSpotId())
                 .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
 
@@ -42,6 +50,6 @@ public class ReviewService {
         if (!review.getMember().getMemberId().equals(member.getMemberId())) {
             throw new ReviewHandler(NOT_REVIEW_OWNER);
         }
-        reviewRepository.delete(review);
+        review.delete();
     }
 }

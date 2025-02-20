@@ -62,7 +62,9 @@ public enum ErrorStatus implements BaseErrorCode {
     S3_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 업로드에 실패하였습니다."),
 
     //신고하기 에러
-    CANNOT_REPORT_OWN_SPOT(HttpStatus.BAD_REQUEST, "REPORT4000", "자신의 스팟은 신고할 수 없습니다.");
+    CANNOT_REPORT_OWN_SPOT(HttpStatus.BAD_REQUEST, "REPORT4000", "자신의 스팟은 신고할 수 없습니다."),
+    CANNOT_REPORT_OWN_REVIEW(HttpStatus.BAD_REQUEST, "REPORT4001", "자신의 리뷰는 신고할 수 없습니다."),
+    MEMBER_IS_REPORTED(HttpStatus.BAD_REQUEST, "REPORT4002", "신고된 사용자입니다."),;
 
     private final HttpStatus httpStatus;
     private final String code;

@@ -20,6 +20,12 @@ public class Review extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String reviewText;
 
+    private boolean deleted;
+
+    public void delete() {
+        this.deleted = true;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "spot_id")
     private Spot spot;

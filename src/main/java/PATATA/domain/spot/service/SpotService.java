@@ -1,6 +1,7 @@
 package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
+import PATATA.domain.member.entity.Role;
 import PATATA.domain.report.entity.Report;
 import PATATA.domain.spot.converter.SpotConverter;
 import PATATA.domain.spot.dto.ScrapResponseDto;
@@ -45,6 +46,12 @@ public class SpotService {
 
     @Transactional
     public SpotResponseDto.CreateResponse createSpot(SpotRequestDto.CreateRequest requestDTO, Member member) {
+
+        // 신고된 사용자 체크
+        if (member.getRole().equals(Role.REPORTED)) {
+            throw new ReportHandler(MEMBER_IS_REPORTED);
+        }
+
         Category category = categoryRepository.findById(requestDTO.getCategoryId())
                 .orElseThrow(() -> new SpotHandler(CATEGORY_NOT_FOUND));
         Point point = createPoint(requestDTO.getLongitude(), requestDTO.getLatitude());

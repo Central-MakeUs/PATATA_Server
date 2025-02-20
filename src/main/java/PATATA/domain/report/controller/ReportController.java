@@ -32,6 +32,17 @@ public class ReportController {
         return ApiResponse.onSuccess(responseDTO);
     }
 
+    @Operation(summary = "리뷰 신고하기 API")
+    @PostMapping("/review/{review_id}")
+    public ApiResponse<SpotResponseDto.ReportResponse> reportReview(
+            @AuthenticationPrincipal Member member,
+            @PathVariable("review_id") Long reviewId,
+            @RequestBody @Valid SpotRequestDto.ReportRequest requestDTO
+    ) {
+        SpotResponseDto.ReportResponse responseDTO = reportService.reportReview(reviewId, requestDTO, member);
+        return ApiResponse.onSuccess(responseDTO);
+    }
+
     @Operation(summary = "사용자 신고하기 API")
     @PostMapping("/member/{member_id}")
     public ApiResponse<SpotResponseDto.ReportResponse> reportMember(
