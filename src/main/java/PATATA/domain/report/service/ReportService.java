@@ -82,6 +82,10 @@ public class ReportService {
 
         reportRepository.save(report);
 
+        // 신고된 사용자의 Role을 REPORTED로 변경
+        reportedMember.updateRole(Role.REPORTED);
+        memberRepository.save(reportedMember);
+
         return SpotResponseDto.ReportResponse.of();
     }
 

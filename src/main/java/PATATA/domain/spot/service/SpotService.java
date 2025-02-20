@@ -137,7 +137,7 @@ public class SpotService {
         Boolean isAuthor = spot.getMember() != null && spot.getMember().getMemberId().equals(member.getMemberId());
 
         Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
-        List<Review> reviews = reviewRepository.findBySpot(spot);
+        List<Review> reviews = reviewRepository.findBySpotAndDeletedFalse(spot);
         List<Tag> tags = spotTagRepository.findBySpot(spot).stream()
                 .map(SpotTag::getTag)
                 .collect(Collectors.toList());
