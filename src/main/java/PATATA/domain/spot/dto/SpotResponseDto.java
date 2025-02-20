@@ -42,6 +42,7 @@ public class SpotResponseDto {
         private Double latitude;
         private Double longitude;
         private Long categoryId;
+        private Long memberId;
         private String memberName;
         private List<String> images;
         private List<String> tags;
@@ -89,6 +90,7 @@ public class SpotResponseDto {
                     .latitude(spot.getSpotLocation().getY())
                     .longitude(spot.getSpotLocation().getX())
                     .categoryId(spot.getSpotCategory().getCategoryId())
+                    .memberId(spot.getMember().getMemberId())
                     .memberName(spot.getMember() != null ? spot.getMember().getNickName() : "알 수 없음")
                     .images(images)
                     .tags(tagNames)
