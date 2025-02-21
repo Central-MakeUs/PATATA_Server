@@ -90,7 +90,7 @@ public class SpotResponseDto {
                     .latitude(spot.getSpotLocation().getY())
                     .longitude(spot.getSpotLocation().getX())
                     .categoryId(spot.getSpotCategory().getCategoryId())
-                    .memberId(spot.getMember().getMemberId())
+                    .memberId(spot.getMember() != null ? spot.getMember().getMemberId(): null)
                     .memberName(spot.getMember() != null ? spot.getMember().getNickName() : "알 수 없음")
                     .images(images)
                     .tags(tagNames)
