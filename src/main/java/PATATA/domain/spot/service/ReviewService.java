@@ -40,7 +40,7 @@ public class ReviewService {
                 .spot(spot)
                 .build();
         Review savedReview = reviewRepository.save(review);
-        return new ReviewResponseDto(savedReview.getReviewId(), savedReview.getReviewText(), savedReview.getCreatedAt());
+        return new ReviewResponseDto(savedReview.getReviewId(), member.getNickName(), savedReview.getReviewText(), savedReview.getCreatedAt());
     }
 
     @Transactional

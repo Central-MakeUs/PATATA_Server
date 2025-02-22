@@ -11,13 +11,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ReviewResponseDto {
     private Long reviewId;
+    private String memberName;
     private String reviewText;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime reviewDate;
 
     @Builder
-    public ReviewResponseDto(Long reviewId, String reviewText, LocalDateTime reviewDate) {
+    public ReviewResponseDto(Long reviewId, String memberName, String reviewText, LocalDateTime reviewDate) {
         this.reviewId = reviewId;
+        this.memberName = memberName;
         this.reviewText = reviewText;
         this.reviewDate = reviewDate;
     }

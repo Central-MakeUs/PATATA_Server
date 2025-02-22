@@ -181,14 +181,11 @@ public class OAuthService {
     public void appleDelete(Member member, String code) {
         try {
             String clientSecret = appleClientSecretGenerator.createClientSecret();
-            log.info("여기1");
             AppleTokenDto appleTokenDto = appleOAuthProvider.getAppleRefreshToken(code, clientSecret);
             String refreshToken = appleTokenDto.refreshToken();
-            log.info("여기2");
             String idToken = appleTokenDto.idToken();
-            log.info("여기3");
-            Claims claims = validateAndGetClaims(idToken);
 
+            Claims claims = validateAndGetClaims(idToken);
             String sub = claims.getSubject();
 
             // 회원 정보 일치 검사
