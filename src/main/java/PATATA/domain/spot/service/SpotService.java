@@ -2,7 +2,6 @@ package PATATA.domain.spot.service;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.entity.Role;
-import PATATA.domain.report.entity.Report;
 import PATATA.domain.spot.converter.SpotConverter;
 import PATATA.domain.spot.dto.ScrapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
@@ -91,7 +90,7 @@ public class SpotService {
         List<SpotImage> spotImages = images.stream()
                 .map(imageRequest -> {
                     try {
-                        String imageUrl = s3Service.upload(imageRequest.getFile());
+                        String imageUrl = s3Service.upload(imageRequest.getFile(), "spot-images/");
                         return SpotImage.builder()
                                 .spot(spot)
                                 .imageUrl(imageUrl)
