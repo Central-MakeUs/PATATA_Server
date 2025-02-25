@@ -31,7 +31,7 @@ public class SpotRequestDto {
         @NotNull(message = "스팟 위치는 필수입니다.")
         private Double longitude;
 
-        @Size(max = 100, message = "스팟 설명은 100자 이하여야 합니다.")
+        @Size(max = 300, message = "스팟 설명은 300자 이하여야 합니다.")
         private String spotDescription;
 
         @NotNull(message = "카테고리는 필수입니다.")
