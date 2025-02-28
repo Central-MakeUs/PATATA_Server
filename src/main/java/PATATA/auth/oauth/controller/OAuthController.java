@@ -63,17 +63,17 @@ public class OAuthController {
         return ApiResponse.onSuccess(oAuthService.googleLogin(googleReqDto));
     }
 
-    @Operation(summary = "로그아웃 API")
-    @PostMapping("/logout")
-    public ApiResponse<String> logout(@AuthenticationPrincipal Member member) {
-        String token = member.getRefreshToken();
-
-        if (StringUtils.hasText(token)) {
-            memberService.logout(token);
-            return ApiResponse.onSuccess("LOGOUT SUCCESS");
-        } else
-            throw new JwtHandler(TOKEN_EMPTY);
-    }
+//    @Operation(summary = "로그아웃 API")
+//    @PostMapping("/logout")
+//    public ApiResponse<String> logout(@AuthenticationPrincipal Member member) {
+//        String token = member.getRefreshToken();
+//
+//        if (StringUtils.hasText(token)) {
+//            memberService.logout(token);
+//            return ApiResponse.onSuccess("LOGOUT SUCCESS");
+//        } else
+//            throw new JwtHandler(TOKEN_EMPTY);
+//    }
 
     @Operation(summary = "애플 탈퇴 API")
     @DeleteMapping("/delete/apple")
