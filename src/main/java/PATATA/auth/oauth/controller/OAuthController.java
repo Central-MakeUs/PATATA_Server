@@ -50,7 +50,7 @@ public class OAuthController {
     @Operation(summary = "애플 로그인 API")
     @PostMapping("/apple/login")
     public ApiResponse<LoginResponseDTO> appleLogin(@RequestBody @Validated AppleLoginRequestDTO appleReqDto) {
-        if (appleReqDto.getIdentityToken() == null)
+        if (appleReqDto.getAuthorizationCode() == null)
             throw new OAuthHandler(APPLE_ID_TOKEN_EMPTY);
         return ApiResponse.onSuccess(oAuthService.appleLogin(appleReqDto));
     }

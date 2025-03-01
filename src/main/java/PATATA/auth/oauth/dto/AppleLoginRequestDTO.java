@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class AppleLoginRequestDTO {
 
     @NotEmpty
-    private String identityToken;
+    private String authorizationCode;
+
 }

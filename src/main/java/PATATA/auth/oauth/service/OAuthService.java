@@ -74,7 +74,12 @@ public class OAuthService {
     @Transactional
     public LoginResponseDTO appleLogin(AppleLoginRequestDTO appleLoginRequestDto) {
         try {
-            Claims claims = validateAndGetClaims(appleLoginRequestDto.getIdentityToken());
+            String clientSecret = appleClientSecretGenerator.createClientSecret();
+            AppleTokenDto appleTokenDto = appleOAuthProvider.getAppleRefreshToken(appleLoginRequestDto.getAuthorizationCode(), clientSecret);
+
+            String idToken = appleTokenDto.idToken();
+            Claims claims = validateAndGetClaims(idToken);
+
             String sub = claims.getSubject();
             String email = claims.get(EMAIL_CLAIM, String.class);
 
@@ -87,6 +92,14 @@ public class OAuthService {
                         .orElseThrow(() -> new MemberHandler(MEMBER_NOT_FOUND));
                 if (member.getRole() == Role.WITHDRAWAL) {
                     log.info("멤버 role: {}", member.getRole());
+                    String refreshToken = appleTokenDto.refreshToken();
+                    AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
+                            .client_id(appleClientId)
+                            .refresh_token(refreshToken)
+                            .client_secret(clientSecret)
+                            .token_type("refresh_token")
+                            .build();
+                    appleAuthClient.revoke(appleRevokeRequest.getRefresh_token(), appleRevokeRequest.getClient_id(), appleRevokeRequest.getClient_secret(), appleRevokeRequest.getToken_type());
                     throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
                 }
                 return memberService.createToken(member);
@@ -100,6 +113,14 @@ public class OAuthService {
                 LoginType loginType = member.getLoginType();
                 if (member.getRole() == Role.WITHDRAWAL) {
                     log.info("멤버 role: {}", member.getRole());
+                    String refreshToken = appleTokenDto.refreshToken();
+                    AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
+                            .client_id(appleClientId)
+                            .refresh_token(refreshToken)
+                            .client_secret(clientSecret)
+                            .token_type("refresh_token")
+                            .build();
+                    appleAuthClient.revoke(appleRevokeRequest.getRefresh_token(), appleRevokeRequest.getClient_id(), appleRevokeRequest.getClient_secret(), appleRevokeRequest.getToken_type());
                     throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
                 }
                 if (!loginType.equals(LoginType.APPLE)) {
@@ -201,6 +222,8 @@ public class OAuthService {
                     .token_type("refresh_token")
                     .build();
             appleAuthClient.revoke(appleRevokeRequest.getRefresh_token(), appleRevokeRequest.getClient_id(), appleRevokeRequest.getClient_secret(), appleRevokeRequest.getToken_type());
+
+            //회원 데이터 삭제
             memberService.deleteMember(member);
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Apple Revoke Error");
@@ -208,7 +231,6 @@ public class OAuthService {
             log.error("Apple Revoke Error: {}", e.getMessage());
             throw new MemberHandler(MEMBER_DELETE_FAILED);
         }
-
 
     }
 
