@@ -3,10 +3,29 @@ package PATATA.domain.spot.dto;
 import PATATA.domain.spot.entity.Spot;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public class MapResponseDto {
+
+    @Getter
+    @Builder
+    public static class InBoundsListResponse {
+        private int currentPage;    // 현재 페이지
+        private int totalPages;
+        private int totalCount;
+        private List<InBoundsResponse> spots;
+
+        public static InBoundsListResponse of(Page<InBoundsResponse> spots) {
+            return InBoundsListResponse.builder()
+                    .currentPage(spots.getNumber())
+                    .totalPages(spots.getTotalPages())
+                    .totalCount((int) spots.getTotalElements())
+                    .spots(spots.getContent())
+                    .build();
+        }
+    }
 
     @Getter
     @Builder

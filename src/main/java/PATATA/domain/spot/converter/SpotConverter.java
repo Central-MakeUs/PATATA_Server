@@ -2,6 +2,7 @@ package PATATA.domain.spot.converter;
 
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.repository.MemberRepository;
+import PATATA.domain.spot.dto.MapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
 import PATATA.domain.spot.dto.SpotResponseDto;
 import PATATA.domain.spot.entity.*;
@@ -85,5 +86,22 @@ public class SpotConverter {
 
     }
 
+    public MapResponseDto.InBoundsResponse toInBoundsResponse(Object[] result, Member member) {
+        Long spotId = (Long) result[0];
+        Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
+                .orElseThrow(() -> new SpotHandler(SPOT_NOT_FOUND));
+        List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
+        List<String> imageUrls = spotImages.stream()
+                .map(SpotImage::getImageUrl)
+                .toList();
+        List<SpotTag> spotTags = spotTagRepository.findBySpot(spot);
+        List<String> tags = spotTags.stream()
+                .map(spotTag -> spotTag.getTag().getTagName())
+                .collect(Collectors.toList());
+        Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
+        Double distance = (Double) result[12];
+
+        return MapResponseDto.InBoundsResponse.from(spot, imageUrls, tags, isScraped, distance);
+    }
 
 }

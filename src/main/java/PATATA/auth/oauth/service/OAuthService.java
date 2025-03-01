@@ -1,20 +1,19 @@
 package PATATA.auth.oauth.service;
 
+import PATATA.auth.jwt.service.JwtService;
 import PATATA.auth.oauth.dto.*;
+import PATATA.domain.member.converter.MemberConverter;
 import PATATA.domain.member.entity.LoginType;
+import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.entity.Role;
-import PATATA.global.error.code.status.ErrorStatus;
+import PATATA.domain.member.repository.MemberRepository;
+import PATATA.domain.member.service.MemberService;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.global.error.exception.OAuthHandler;
 import PATATA.infra.oauth.apple.AppleClientSecretGenerator;
 import PATATA.infra.oauth.apple.AppleOAuthProvider;
 import PATATA.infra.oauth.apple.ApplePublicKeyGenerator;
 import PATATA.infra.oauth.apple.client.AppleAuthClient;
-import PATATA.auth.jwt.service.JwtService;
-import PATATA.domain.member.converter.MemberConverter;
-import PATATA.domain.member.entity.Member;
-import PATATA.domain.member.repository.MemberRepository;
-import PATATA.domain.member.service.MemberService;
 import PATATA.infra.oauth.google.GoogleAuthClient;
 import PATATA.infra.oauth.google.GoogleUnlinkClient;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -34,7 +33,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.security.PublicKey;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -82,7 +80,7 @@ public class OAuthService {
 
             String sub = claims.getSubject();
             String email = claims.get(EMAIL_CLAIM, String.class);
-
+            
             log.info("sub: {}", sub);
             log.info("email: {}", email);
 
@@ -166,9 +164,6 @@ public class OAuthService {
         if (memberByEmail.isPresent()) {
             Member member = memberByEmail.get();
             LoginType loginType = member.getLoginType();
-            if (member.getRole() == Role.WITHDRAWAL) {
-                throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
-            }
             if (!loginType.equals(LoginType.GOOGLE)) {
                 throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
             }
@@ -228,10 +223,8 @@ public class OAuthService {
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Apple Revoke Error");
         } catch (Exception e) {
-            log.error("Apple Revoke Error: {}", e.getMessage());
             throw new MemberHandler(MEMBER_DELETE_FAILED);
         }
-
     }
 
     public void googleDelete(Member member, String googleToken) {

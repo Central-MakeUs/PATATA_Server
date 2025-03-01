@@ -2,6 +2,7 @@ package PATATA.domain.spot.service;
 
 
 import PATATA.domain.member.entity.Member;
+import PATATA.domain.spot.converter.SpotConverter;
 import PATATA.domain.spot.dto.MapResponseDto;
 import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.entity.SpotImage;
@@ -17,6 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +37,24 @@ public class MapService {
     private final ScrapRepository scrapRepository;
     private final SpotTagRepository spotTagRepository;
     private final SpotImageRepository spotImageRepository;
+    private final SpotConverter spotConverter;
+
+    public Page<MapResponseDto.InBoundsResponse> getSpotsListInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Pageable pageable, Member member) {
+
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point userLocation = geometryFactory.createPoint(new Coordinate(userLng, userLat));
+
+        int limit = withSearch ? 29 : 30;
+        List<Object[]> results = spotRepository.findSpotsInBounds(minLat, minLng, maxLat, maxLng, userLocation, categoryId, limit);
+
+        List<MapResponseDto.InBoundsResponse> content = results.stream()
+                .map(result -> spotConverter.toInBoundsResponse(result, member))
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), content.size());
+        return new PageImpl<>(content.subList(start, end), pageable, content.size());
+    }
 
     public List<MapResponseDto.InBoundsResponse> getSpotsInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Member member) {
 
@@ -51,11 +73,6 @@ public class MapService {
                     List<String> imageUrls = spotImages.stream()
                             .map(SpotImage::getImageUrl)
                             .toList();
-//                    String representativeImageUrl = spotImages.stream()
-//                            .filter(SpotImage::getIsRepresentative)
-//                            .findFirst()
-//                            .map(SpotImage::getImageUrl)
-//                            .orElse(null);
                     List<SpotTag> spotTags = spotTagRepository.findBySpot(spot);
                     List<String> tags = spotTags.stream()
                             .map(spotTag -> spotTag.getTag().getTagName())

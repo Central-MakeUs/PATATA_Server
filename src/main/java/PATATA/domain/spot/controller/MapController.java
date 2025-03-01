@@ -10,6 +10,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,8 +29,8 @@ public class MapController {
     private final MapService mapService;
     private final SpotRepository spotRepository;
 
-    @Operation(summary = "지도 내 스팟 불러오기 API")
-    @GetMapping("/in-bound")
+    @Operation(summary = "지도 내 스팟 불러오기 API(지도)")
+    @GetMapping("/in-bound/map")
     public ApiResponse<List<MapResponseDto.InBoundsResponse>> getSpotsInBounds(
             @Parameter(description = "남서쪽 위도") @RequestParam(value = "minLatitude") Double minLatitude,
             @Parameter(description = "남서쪽 경도") @RequestParam(value = "minLongitude") Double minLongitude,
@@ -41,6 +44,28 @@ public class MapController {
             ) {
         List<MapResponseDto.InBoundsResponse> spots = mapService.getSpotsInBounds(minLatitude, minLongitude, maxLatitude, maxLongitude, userLatitude, userLongitude, categoryId, withSearch, member);
         return ApiResponse.onSuccess(spots);
+    }
+
+    @Operation(summary = "지도 내 스팟 불러오기 API(목록)")
+    @GetMapping("/in-bound/list")
+    public ApiResponse<MapResponseDto.InBoundsListResponse> getSpotsListInBounds(
+            @Parameter(description = "남서쪽 위도") @RequestParam(value = "minLatitude") Double minLatitude,
+            @Parameter(description = "남서쪽 경도") @RequestParam(value = "minLongitude") Double minLongitude,
+            @Parameter(description = "북동쪽 위도") @RequestParam(value = "maxLatitude") Double maxLatitude,
+            @Parameter(description = "북동쪽 경도") @RequestParam(value = "maxLongitude") Double maxLongitude,
+            @Parameter(description = "사용자 위도") @RequestParam(value = "userLatitude") Double userLatitude,
+            @Parameter(description = "사용자 경도") @RequestParam(value = "userLongitude") Double userLongitude,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @Parameter(description = "검색과 함께 사용 여부") @RequestParam(value = "withSearch") Boolean withSearch,
+            @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @AuthenticationPrincipal Member member
+    ) {
+        Pageable pageable = PageRequest.of(page, 3);
+        Page<MapResponseDto.InBoundsResponse> spots = mapService.getSpotsListInBounds(
+                minLatitude, minLongitude, maxLatitude, maxLongitude,
+                userLatitude, userLongitude, categoryId, withSearch,
+                pageable, member);
+        return ApiResponse.onSuccess(MapResponseDto.InBoundsListResponse.of(spots));
     }
 
     @Operation(summary = "지도 내 스팟 검색하기 API")

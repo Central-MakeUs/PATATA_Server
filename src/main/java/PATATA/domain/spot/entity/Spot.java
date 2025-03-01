@@ -1,14 +1,12 @@
 package PATATA.domain.spot.entity;
 
-import PATATA.domain.spot.service.SpotService;
-import PATATA.global.BaseEntity;
 import PATATA.domain.member.entity.Member;
+import PATATA.global.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Point;
-import org.hibernate.type.SqlTypes;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import org.locationtech.jts.geom.Point;
 
 import java.util.ArrayList;
 import java.util.List;
