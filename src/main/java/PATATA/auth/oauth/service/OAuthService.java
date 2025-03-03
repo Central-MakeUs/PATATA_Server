@@ -122,6 +122,14 @@ public class OAuthService {
                     throw new MemberHandler(MEMBER_ALREADY_WITHDRAW);
                 }
                 if (!loginType.equals(LoginType.APPLE)) {
+                    String refreshToken = appleTokenDto.refreshToken();
+                    AppleRevokeRequest appleRevokeRequest = AppleRevokeRequest.builder()
+                            .client_id(appleClientId)
+                            .refresh_token(refreshToken)
+                            .client_secret(clientSecret)
+                            .token_type("refresh_token")
+                            .build();
+                    appleAuthClient.revoke(appleRevokeRequest.getRefresh_token(), appleRevokeRequest.getClient_id(), appleRevokeRequest.getClient_secret(), appleRevokeRequest.getToken_type());
                     throw new MemberHandler("이미 " + loginType + "으로 가입한 회원입니다.");
                 }
                 return memberService.createToken(member);
