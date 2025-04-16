@@ -90,7 +90,7 @@ public class SpotService {
         List<SpotImage> spotImages = images.stream()
                 .map(imageRequest -> {
                     try {
-                        String imageUrl = s3Service.upload(imageRequest.getFile(), "spot-images/");
+                        String imageUrl = s3Service.upload(imageRequest.getFile(), "spot-images/").getResizedImageUrl();
                         return SpotImage.builder()
                                 .spot(spot)
                                 .imageUrl(imageUrl)
