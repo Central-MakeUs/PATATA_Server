@@ -75,6 +75,7 @@ public class S3ImageService {
             Thumbnails.of(new ByteArrayInputStream(originalBytes))
                     .size(width, height)
                     .outputFormat("jpg")
+                    .outputQuality(1.0)
                     .toOutputStream(outputStream);
             return outputStream.toByteArray();
         }
