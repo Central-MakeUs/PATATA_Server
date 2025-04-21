@@ -33,6 +33,50 @@ public class S3ImageService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    public String uploadOriginal(MultipartFile image, String folder) {
+            //입력받은 이미지 파일이 빈 파일인지 검증
+            if(image.isEmpty() || Objects.isNull(image.getOriginalFilename())){
+                log.info("s3 upload image is empty");
+                throw new S3ImageHandler(IMAGE_EMPTY);
+            }
+            return uploadOriginalImage(image, folder);
+    }
+
+    private String uploadOriginalImage(MultipartFile image, String folder) {
+        try {
+            return uploadImageToS3(image, folder);
+        } catch (IOException e) {
+            log.error("S3 이미지 업로드 실패: {}", e.getMessage(), e);  // 스택 트레이스를 포함한 상세 로그
+            throw new S3ImageHandler(S3_UPLOAD_FAIL);
+        }
+    }
+
+    private String uploadImageToS3(MultipartFile image, String folder) throws IOException {
+        String s3FileName = UUID.randomUUID().toString().concat(".jpg");
+
+        InputStream is = image.getInputStream();
+        byte[] bytes = IOUtils.toByteArray(is);
+
+        //metadata 생성
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(bytes.length);
+        metadata.setContentType("image/jpeg");
+
+        //S3에 요청할 때 사용할 byteInputStream 생성
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+
+        //S3로 putObject 할 때 사용할 요청 객체
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, folder + s3FileName, byteArrayInputStream, metadata);
+        ;
+        //put image to S3
+        amazonS3.putObject(putObjectRequest);
+
+        byteArrayInputStream.close();
+        is.close();
+
+        return amazonS3.getUrl(bucket, folder + s3FileName).toString();
+    }
+
     public S3ImageUrlDto upload(MultipartFile image, String folder) {
         //입력받은 이미지 파일이 빈 파일인지 검증
         if(image.isEmpty() || Objects.isNull(image.getOriginalFilename())){
