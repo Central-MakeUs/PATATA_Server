@@ -39,6 +39,7 @@ public class S3ImageService {
                 log.info("s3 upload image is empty");
                 throw new S3ImageHandler(IMAGE_EMPTY);
             }
+            log.info("프로필 사진 업데이트 중 ... ");
             return uploadOriginalImage(image, folder);
     }
 
@@ -83,6 +84,7 @@ public class S3ImageService {
             log.info("s3 upload image is empty");
             throw new S3ImageHandler(IMAGE_EMPTY);
         }
+        log.info("이미지 리사이징 중...");
         return uploadImage(image, folder);
     }
 
