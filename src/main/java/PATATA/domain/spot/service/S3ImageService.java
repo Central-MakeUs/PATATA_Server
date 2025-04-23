@@ -21,10 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -52,12 +49,23 @@ public class S3ImageService {
                 throw new S3ImageHandler(IMAGE_EMPTY);
             }
             log.info("프로필 사진 업데이트 중 ... ");
-            return uploadOriginalImage(image, folder);
+            String originalUrl = uploadOriginalImage(image, folder);
+
+        // 썸네일 저장
+        try {
+            uploadThumbnailImage(image, folder);
+        } catch (IOException e) {
+            log.error("썸네일 생성 및 업로드 실패: {}", e.getMessage(), e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        return originalUrl;
     }
 
     private String uploadOriginalImage(MultipartFile image, String folder) {
         try {
-            return uploadAndResize(image, folder);
+            return uploadImageToS3(image, folder);
         } catch (IOException e) {
             log.error("S3 이미지 업로드 실패: {}", e.getMessage(), e);  // 스택 트레이스를 포함한 상세 로그
             throw new S3ImageHandler(S3_UPLOAD_FAIL);
@@ -90,34 +98,60 @@ public class S3ImageService {
         return amazonS3.getUrl(bucket, folder + s3FileName).toString();
     }
 
-//    public MultipartFile resizeImage(MultipartFile image, int targetWidth, int targetHeight) throws IOException {
-//        // 이미지 파일을 BufferedImage로 변환
-//        BufferedImage originalImage = ImageIO.read(image.getInputStream());
-//
-//        // Marvin MImage 객체로 변환
-//        MarvinImage mImage = new MarvinImage(originalImage);
-//
-//        // 이미지 리사이징
-//        Scale scale = new Scale();
-//        scale.load();  // 필요한 transform을 로드
-//        scale.setAttribute("width", targetWidth);
-//        scale.setAttribute("height", targetHeight);
-//        scale.process(mImage.clone(), mImage, null, null, false);
-//
-//        // 리사이즈된 이미지를 다시 BufferedImage로 변환
-//        BufferedImage resizedImage = mImage.getBufferedImage();
-//
-//        // 리사이즈된 이미지를 바이트 배열로 변환
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        ImageIO.write(resizedImage, "jpg", baos);
-//        baos.flush();
-//
-//        byte[] resizedImageBytes = baos.toByteArray();
-//        baos.close();
-//
-//        // 리사이즈된 이미지를 MultipartFile로 다시 변환하여 반환 (optional)
-//        return new MockMultipartFile(resizedImageBytes);  // S3에 업로드할 수 있는 형식으로 변환
-//    }
+
+    private File convertHeicToJpeg(File heicFile) throws IOException, InterruptedException {
+        String jpegPath = heicFile.getAbsolutePath().replace(".heic", ".jpg");
+        ProcessBuilder builder = new ProcessBuilder("convert", heicFile.getAbsolutePath(), jpegPath);
+        Process process = builder.start();
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            throw new RuntimeException("HEIC → JPG 변환 실패");
+        }
+        return new File(jpegPath);
+    }
+
+    private void uploadThumbnailImage(MultipartFile image, String folder) throws IOException, InterruptedException {
+        String originalFilename = image.getOriginalFilename();
+        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+
+        File tempFile = File.createTempFile("upload_", "." + extension);
+        image.transferTo(tempFile);
+
+        File imageToUse = tempFile;
+
+        // HEIC일 경우 JPEG로 변환
+        if ("heic".equals(extension)) {
+            imageToUse = convertHeicToJpeg(tempFile);
+        }
+
+        BufferedImage bufferedImage = ImageIO.read(imageToUse);
+        BufferedImage thumbnail = Thumbnails.of(bufferedImage)
+                .size(800, 800)
+                .outputFormat("jpg")
+                .asBufferedImage();
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ImageIO.write(thumbnail, "jpg", os);
+        byte[] thumbnailBytes = os.toByteArray();
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(thumbnailBytes.length);
+        metadata.setContentType("image/jpeg");
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(thumbnailBytes);
+        String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
+
+        amazonS3.putObject(new PutObjectRequest(bucket, folder + thumbnailFileName, inputStream, metadata));
+
+        inputStream.close();
+        tempFile.delete();
+        if (!imageToUse.equals(tempFile)) {
+            imageToUse.delete(); // jpeg 변환된 파일 삭제
+        }
+    }
+
+    // ----------------------------------------
 
     public S3ImageUrlDto upload(MultipartFile image, String folder) {
         //입력받은 이미지 파일이 빈 파일인지 검증
@@ -178,133 +212,6 @@ public class S3ImageService {
                 resizedUrls.get(800),
                 resizedUrls.get(1200)
         );
-    }
-
-    public String uploadAndResize(MultipartFile image, String folder) throws IOException {
-        // 1. 원본 업로드
-        String originalUrl = uploadImageToS3(image, folder);
-
-//        // 2. S3에서 원본 이미지 다운로드
-//        log.info("original url: {}", originalUrl);
-//        S3Object s3Object = amazonS3.getObject(bucket, extractKeyFromUrl(originalUrl));
-//        log.info("원본 이미지 다운로드 중...");
-//        InputStream originalInputStream = s3Object.getObjectContent();
-//        log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
-
-        try {
-            log.info("original url: {}", originalUrl);
-            String key = extractKeyFromUrl(originalUrl);
-            log.info("Extracted S3 key: {}", key);
-
-            // 2. Download original with try-with-resources
-            try (S3Object s3Object = amazonS3.getObject(bucket, key);
-                 InputStream originalInputStream = s3Object.getObjectContent()) {
-
-                log.info("Downloading original image...");
-                log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
-
-                long maxImageSize = 5 * 1024 * 1024; // 5MB 제한
-                ObjectMetadata originalMetadata = s3Object.getObjectMetadata();
-                if (originalMetadata.getContentLength() > maxImageSize) {
-                    throw new IllegalArgumentException("Image too large to process");
-                }
-
-                // 3. Resize image directly to output stream
-                ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
-                Thumbnails.of(originalInputStream)
-                        .size(400, 400)
-                        .outputFormat("jpg")
-                        .outputQuality(1.0)
-                        .toOutputStream(resizedOutputStream);
-
-                byte[] resizedBytes = resizedOutputStream.toByteArray();
-
-                // 4. Upload resized image
-                String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
-                ObjectMetadata metadata = new ObjectMetadata();
-                metadata.setContentLength(resizedBytes.length);
-                metadata.setContentType("image/jpeg");
-
-                try (ByteArrayInputStream resizedInputStream = new ByteArrayInputStream(resizedBytes)) {
-                    amazonS3.putObject(new PutObjectRequest(bucket,
-                            folder + thumbnailFileName,
-                            resizedInputStream,
-                            metadata));
-                }
-
-                return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
-            }
-        } catch (AmazonServiceException e) {
-            log.error("AmazonServiceException: {}", e.getMessage(), e);
-        } catch (SdkClientException e) {
-            log.error("SdkClientException: {}", e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("Exception: {}", e.getMessage(), e);
-        }
-        return originalUrl;
-    }
-
-
-    private String extractKeyFromUrl(String s3Url) {
-        try {
-            // URL에서 path만 추출
-            URL u = new URL(s3Url);
-            // 도메인과 앞의 슬래시 제거 후 파일 경로만 반환
-            return u.getPath().substring(1); // 앞의 '/' 제거
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Invalid S3 URL", e);
-        }
-    }
-
-//    private S3ImageUrlDto uploadOriginalAndResizedImage(MultipartFile image, String folder) throws IOException {
-//        String uuid = UUID.randomUUID().toString();
-//        String originalFileName = folder + uuid + "_o.jpg";
-//        String resizedFileName = folder + uuid + "_r.jpg";
-//
-//        // S3 업로드를 위한 input stream 재사용 불가 -> 각각 따로 열기
-//        try (InputStream originalInputStream = image.getInputStream()) {
-//            String originalUrl = uploadImageToS3(originalInputStream, originalFileName, image.getSize());
-//
-//            // 리사이징용 input stream 다시 생성
-//            try (InputStream resizeInputStream = image.getInputStream()) {
-//                ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
-//
-//                Thumbnails.of(resizeInputStream)
-//                        .size(1200, 1200)
-//                        .outputFormat("jpg")
-//                        .outputQuality(1.0)
-//                        .toOutputStream(resizedOutputStream);
-//
-//                byte[] resizedBytes = resizedOutputStream.toByteArray();
-//                String resizedUrl = uploadImageToS3(new ByteArrayInputStream(resizedBytes), resizedFileName, resizedBytes.length);
-//
-//                return new S3ImageUrlDto(originalUrl, resizedUrl);
-//            }
-//        }
-
-//        // original image upload
-//        byte[] originalBytes;
-//        try (InputStream is = image.getInputStream()) {
-//            originalBytes = IOUtils.toByteArray(is);
-//        }
-//        String originalUrl = uploadImageToS3(originalBytes, originalFileName);
-//
-//        // resized image upload
-//        byte[] resizedBytes = resizeImage(originalBytes, 400, 400);
-//        String resizedUrl = uploadImageToS3(resizedBytes, resizedFileName);
-//
-//        return new S3ImageUrlDto(originalUrl, resizedUrl);
-   // }
-
-    private byte[] resizeImage(byte[] originalBytes, int width, int height) throws IOException {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            Thumbnails.of(new ByteArrayInputStream(originalBytes))
-                    .size(width, height)
-                    .outputFormat("jpg")
-                    .outputQuality(1.0)
-                    .toOutputStream(outputStream);
-            return outputStream.toByteArray();
-        }
     }
 
     //S3에 파일 업로드

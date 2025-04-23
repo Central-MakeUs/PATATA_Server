@@ -76,7 +76,7 @@ public class SpotResponseDto {
                     .collect(Collectors.toList());
 
             List<String> images = spotImages.stream()
-                    .map(SpotImage::getResizedImageUrl1200)
+                    .map(SpotImage::getOriginalImageUrl)
                     .collect(Collectors.toList());
 
             return DetailResponse.builder()
@@ -259,7 +259,7 @@ public class SpotResponseDto {
         public static TodaySpotListResponse from(Spot spot, Double distance, List<SpotImage> images, Boolean isScraped, List<String> tags) {
 
             List<String> imageUrls = images.stream()
-                    .map(SpotImage::getResizedImageUrl1200)
+                    .map(SpotImage::getOriginalImageUrl)
                     .collect(Collectors.toList());
 
             return TodaySpotListResponse.builder()
