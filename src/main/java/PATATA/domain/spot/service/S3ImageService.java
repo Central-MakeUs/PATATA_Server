@@ -147,7 +147,9 @@ public class S3ImageService {
 
         // 2. S3에서 원본 이미지 다운로드
         S3Object s3Object = amazonS3.getObject(bucket, extractKeyFromUrl(originalUrl));
+        log.info("원본 이미지 다운로드 중...");
         InputStream originalInputStream = s3Object.getObjectContent();
+        log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
 
         // 3. 이미지 리사이징
         ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
