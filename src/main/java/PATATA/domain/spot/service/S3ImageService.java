@@ -111,9 +111,9 @@ public class S3ImageService {
                 ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
 
                 Thumbnails.of(resizeInputStream)
-                        .size(400, 400)
+                        .size(800, 800)
                         .outputFormat("jpg")
-                        .outputQuality(1.0)
+                        .outputQuality(0.8)
                         .toOutputStream(resizedOutputStream);
 
                 byte[] resizedBytes = resizedOutputStream.toByteArray();
