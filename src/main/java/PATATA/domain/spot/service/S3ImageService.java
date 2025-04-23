@@ -5,6 +5,7 @@ import PATATA.global.error.exception.S3ImageHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,7 @@ public class S3ImageService {
 
     private String uploadOriginalImage(MultipartFile image, String folder) {
         try {
-            return uploadImageToS3(image, folder);
+            return uploadAndResize(image, folder);
         } catch (IOException e) {
             log.error("S3 이미지 업로드 실패: {}", e.getMessage(), e);  // 스택 트레이스를 포함한 상세 로그
             throw new S3ImageHandler(S3_UPLOAD_FAIL);
@@ -139,6 +140,46 @@ public class S3ImageService {
 //                resizedUrls.get(800),
 //                resizedUrls.get(1200)
 //        );
+
+    public String uploadAndResize(MultipartFile image, String folder) throws IOException {
+        // 1. 원본 업로드
+        String originalUrl = uploadImageToS3(image, folder);
+
+        // 2. S3에서 원본 이미지 다운로드
+        S3Object s3Object = amazonS3.getObject(bucket, extractKeyFromUrl(originalUrl));
+        InputStream originalInputStream = s3Object.getObjectContent();
+
+        // 3. 이미지 리사이징
+        ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
+        Thumbnails.of(originalInputStream)
+                .size(400, 400)
+                .outputFormat("jpg")
+                .outputQuality(1.0)
+                .toOutputStream(resizedOutputStream);
+
+        byte[] resizedBytes = resizedOutputStream.toByteArray();
+
+        // 4. 리사이징된 이미지 업로드
+        String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(resizedBytes.length);
+        metadata.setContentType("image/jpeg");
+
+        ByteArrayInputStream resizedInputStream = new ByteArrayInputStream(resizedBytes);
+        amazonS3.putObject(new PutObjectRequest(bucket, folder + thumbnailFileName, resizedInputStream, metadata));
+
+        // 스트림 정리
+        originalInputStream.close();
+        resizedInputStream.close();
+        resizedOutputStream.close();
+
+        return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
+    }
+
+    private String extractKeyFromUrl(String s3Url) {
+        return s3Url.substring(s3Url.indexOf(bucket) + bucket.length() + 1); // 버킷 이후 경로만 추출
+    }
+
     private S3ImageUrlDto uploadOriginalAndResizedImage(MultipartFile image, String folder) throws IOException {
         String uuid = UUID.randomUUID().toString();
         String originalFileName = folder + uuid + "_o.jpg";
