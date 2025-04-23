@@ -60,6 +60,12 @@ dependencies {
 	implementation 'com.github.downgoon:MarvinPlugins:1.5.5'
 	implementation 'org.springframework:spring-test'
 
+	//image resizing(twelvemonkeys)
+	implementation 'com.twelvemonkeys.imageio:imageio-core:3.8.1'
+	implementation 'com.twelvemonkeys.imageio:imageio-jpeg:3.8.1'
+	implementation 'com.twelvemonkeys.imageio:imageio-heif:3.8.1' // HEIC 지원
+
+
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'

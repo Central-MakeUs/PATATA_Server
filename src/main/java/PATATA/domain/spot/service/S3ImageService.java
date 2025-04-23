@@ -20,14 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import static PATATA.global.error.code.status.ErrorStatus.IMAGE_EMPTY;
 import static PATATA.global.error.code.status.ErrorStatus.S3_UPLOAD_FAIL;
@@ -43,21 +42,20 @@ public class S3ImageService {
     private String bucket;
 
     public String uploadOriginal(MultipartFile image, String folder) {
-            //입력받은 이미지 파일이 빈 파일인지 검증
-            if(image.isEmpty() || Objects.isNull(image.getOriginalFilename())){
-                log.info("s3 upload image is empty");
-                throw new S3ImageHandler(IMAGE_EMPTY);
-            }
-            log.info("프로필 사진 업데이트 중 ... ");
-            String originalUrl = uploadOriginalImage(image, folder);
+        //입력받은 이미지 파일이 빈 파일인지 검증
+        if(image.isEmpty() || Objects.isNull(image.getOriginalFilename())){
+            log.info("s3 upload image is empty");
+            throw new S3ImageHandler(IMAGE_EMPTY);
+        }
+        log.info("프로필 사진 업데이트 중 ... ");
+
+        String originalUrl = uploadOriginalImage(image, folder);
 
         // 썸네일 저장
         try {
-            uploadThumbnailImage(image, folder);
+            return uploadThumbnailImage(image, folder);
         } catch (IOException e) {
             log.error("썸네일 생성 및 업로드 실패: {}", e.getMessage(), e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
 
         return originalUrl;
@@ -111,44 +109,46 @@ public class S3ImageService {
         return new File(jpegPath);
     }
 
-    private void uploadThumbnailImage(MultipartFile image, String folder) throws IOException, InterruptedException {
-        String originalFilename = image.getOriginalFilename();
-        String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+    private String uploadThumbnailImage(MultipartFile image, String folder) throws IOException {
+        log.info("JVM Heap - Max: {} MB, Total: {} MB, Free: {} MB",
+                Runtime.getRuntime().maxMemory() / (1024 * 1024),
+                Runtime.getRuntime().totalMemory() / (1024 * 1024),
+                Runtime.getRuntime().freeMemory() / (1024 * 1024));
 
-        File tempFile = File.createTempFile("upload_", "." + extension);
-        image.transferTo(tempFile);
+        ImageInputStream iis = ImageIO.createImageInputStream(image.getInputStream());
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
 
-        File imageToUse = tempFile;
-
-        // HEIC일 경우 JPEG로 변환
-        if ("heic".equals(extension)) {
-            imageToUse = convertHeicToJpeg(tempFile);
+        if (!readers.hasNext()) {
+            throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다.");
         }
 
-        BufferedImage bufferedImage = ImageIO.read(imageToUse);
-        BufferedImage thumbnail = Thumbnails.of(bufferedImage)
-                .size(800, 800)
-                .outputFormat("jpg")
-                .asBufferedImage();
+        ImageReader reader = readers.next();
+        reader.setInput(iis, true);
+        BufferedImage bufferedImage = reader.read(0);
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(thumbnail, "jpg", os);
+        Thumbnails.of(bufferedImage)
+                .size(400, 400)
+                .outputFormat("jpg")
+                .outputQuality(0.8f)
+                .toOutputStream(os);
+
         byte[] thumbnailBytes = os.toByteArray();
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(thumbnailBytes);
+
+        String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(thumbnailBytes.length);
         metadata.setContentType("image/jpeg");
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(thumbnailBytes);
-        String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
-
         amazonS3.putObject(new PutObjectRequest(bucket, folder + thumbnailFileName, inputStream, metadata));
 
+        iis.close();
+        os.close();
         inputStream.close();
-        tempFile.delete();
-        if (!imageToUse.equals(tempFile)) {
-            imageToUse.delete(); // jpeg 변환된 파일 삭제
-        }
+
+        return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
     }
 
     // ----------------------------------------
