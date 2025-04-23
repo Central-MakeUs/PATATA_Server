@@ -2,6 +2,8 @@ package PATATA.domain.spot.service;
 
 import PATATA.domain.spot.dto.S3ImageUrlDto;
 import PATATA.global.error.exception.S3ImageHandler;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -145,39 +147,55 @@ public class S3ImageService {
         // 1. 원본 업로드
         String originalUrl = uploadImageToS3(image, folder);
 
-        // 2. S3에서 원본 이미지 다운로드
-        log.info("original url: {}", originalUrl);
-        S3Object s3Object = amazonS3.getObject(bucket, extractKeyFromUrl(originalUrl));
-        log.info("원본 이미지 다운로드 중...");
-        InputStream originalInputStream = s3Object.getObjectContent();
-        log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
+//        // 2. S3에서 원본 이미지 다운로드
+//        log.info("original url: {}", originalUrl);
+//        S3Object s3Object = amazonS3.getObject(bucket, extractKeyFromUrl(originalUrl));
+//        log.info("원본 이미지 다운로드 중...");
+//        InputStream originalInputStream = s3Object.getObjectContent();
+//        log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
 
-        // 3. 이미지 리사이징
-        ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
-        Thumbnails.of(originalInputStream)
-                .size(400, 400)
-                .outputFormat("jpg")
-                .outputQuality(1.0)
-                .toOutputStream(resizedOutputStream);
+        try {
+            log.info("original url: {}", originalUrl);
+            String key = extractKeyFromUrl(originalUrl);
+            log.info("추출된 S3 키: {}", key);
+            S3Object s3Object = amazonS3.getObject(bucket, key);
+            log.info("원본 이미지 다운로드 중...");
+            InputStream originalInputStream = s3Object.getObjectContent();
+            log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
 
-        byte[] resizedBytes = resizedOutputStream.toByteArray();
+            // 3. 이미지 리사이징
+            ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
+            Thumbnails.of(originalInputStream)
+                    .size(400, 400)
+                    .outputFormat("jpg")
+                    .outputQuality(1.0)
+                    .toOutputStream(resizedOutputStream);
 
-        // 4. 리사이징된 이미지 업로드
-        String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(resizedBytes.length);
-        metadata.setContentType("image/jpeg");
+            byte[] resizedBytes = resizedOutputStream.toByteArray();
 
-        ByteArrayInputStream resizedInputStream = new ByteArrayInputStream(resizedBytes);
-        amazonS3.putObject(new PutObjectRequest(bucket, folder + thumbnailFileName, resizedInputStream, metadata));
+            // 4. 리사이징된 이미지 업로드
+            String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(resizedBytes.length);
+            metadata.setContentType("image/jpeg");
 
-        // 스트림 정리
-        originalInputStream.close();
-        resizedInputStream.close();
-        resizedOutputStream.close();
+            ByteArrayInputStream resizedInputStream = new ByteArrayInputStream(resizedBytes);
+            amazonS3.putObject(new PutObjectRequest(bucket, folder + thumbnailFileName, resizedInputStream, metadata));
 
-        return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
+            // 스트림 정리
+            originalInputStream.close();
+            resizedInputStream.close();
+            resizedOutputStream.close();
+        } catch (AmazonServiceException e) {
+            log.error("AmazonServiceException: {}", e.getMessage(), e);
+        } catch (SdkClientException e) {
+            log.error("SdkClientException: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Exception: {}", e.getMessage(), e);
+        }
+        return originalUrl;
     }
+
 
     private String extractKeyFromUrl(String s3Url) {
         return s3Url.substring(s3Url.indexOf(bucket) + bucket.length() + 1); // 버킷 이후 경로만 추출
