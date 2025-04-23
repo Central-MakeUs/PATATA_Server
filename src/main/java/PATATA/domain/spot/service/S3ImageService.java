@@ -86,7 +86,7 @@ public class S3ImageService {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
 
         //S3로 putObject 할 때 사용할 요청 객체
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, folder + s3FileName, byteArrayInputStream, metadata);
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, folder + "/" + s3FileName, byteArrayInputStream, metadata);
         ;
         //put image to S3
         amazonS3.putObject(putObjectRequest);
@@ -94,7 +94,7 @@ public class S3ImageService {
         byteArrayInputStream.close();
         is.close();
 
-        return amazonS3.getUrl(bucket, folder + s3FileName).toString();
+        return amazonS3.getUrl(bucket, folder + "_resized/resized_400_" + s3FileName).toString();
     }
 
     private String uploadThumbnailImage(MultipartFile image, String folder) throws IOException {
