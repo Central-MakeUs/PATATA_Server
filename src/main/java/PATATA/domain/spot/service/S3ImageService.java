@@ -48,17 +48,18 @@ public class S3ImageService {
             throw new S3ImageHandler(IMAGE_EMPTY);
         }
         log.info("프로필 사진 업데이트 중 ... ");
-
-        String originalUrl = uploadOriginalImage(image, folder);
-
-        // 썸네일 저장
-        try {
-            return uploadThumbnailImage(image, folder);
-        } catch (IOException e) {
-            log.error("썸네일 생성 및 업로드 실패: {}", e.getMessage(), e);
-        }
-
-        return originalUrl;
+        return uploadOriginalImage(image, folder);
+//
+//        String originalUrl = uploadOriginalImage(image, folder);
+//
+//        // 썸네일 저장
+//        try {
+//            return uploadThumbnailImage(image, folder);
+//        } catch (IOException e) {
+//            log.error("썸네일 생성 및 업로드 실패: {}", e.getMessage(), e);
+//        }
+//
+//        return originalUrl;
     }
 
     private String uploadOriginalImage(MultipartFile image, String folder) {
@@ -94,19 +95,6 @@ public class S3ImageService {
         is.close();
 
         return amazonS3.getUrl(bucket, folder + s3FileName).toString();
-    }
-
-
-    private File convertHeicToJpeg(File heicFile) throws IOException, InterruptedException {
-        String jpegPath = heicFile.getAbsolutePath().replace(".heic", ".jpg");
-        ProcessBuilder builder = new ProcessBuilder("convert", heicFile.getAbsolutePath(), jpegPath);
-        Process process = builder.start();
-
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            throw new RuntimeException("HEIC → JPG 변환 실패");
-        }
-        return new File(jpegPath);
     }
 
     private String uploadThumbnailImage(MultipartFile image, String folder) throws IOException {
