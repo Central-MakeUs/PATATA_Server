@@ -186,6 +186,8 @@ public class S3ImageService {
             originalInputStream.close();
             resizedInputStream.close();
             resizedOutputStream.close();
+
+            return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
         } catch (AmazonServiceException e) {
             log.error("AmazonServiceException: {}", e.getMessage(), e);
         } catch (SdkClientException e) {
