@@ -102,18 +102,39 @@ public class S3ImageService {
         String originalFileName = folder + uuid + "_o.jpg";
         String resizedFileName = folder + uuid + "_r.jpg";
 
-        // original image upload
-        byte[] originalBytes;
-        try (InputStream is = image.getInputStream()) {
-            originalBytes = IOUtils.toByteArray(is);
+        // S3 업로드를 위한 input stream 재사용 불가 -> 각각 따로 열기
+        try (InputStream originalInputStream = image.getInputStream()) {
+            String originalUrl = uploadImageToS3(originalInputStream, originalFileName, image.getSize());
+
+            // 리사이징용 input stream 다시 생성
+            try (InputStream resizeInputStream = image.getInputStream()) {
+                ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
+
+                Thumbnails.of(resizeInputStream)
+                        .size(400, 400)
+                        .outputFormat("jpg")
+                        .outputQuality(1.0)
+                        .toOutputStream(resizedOutputStream);
+
+                byte[] resizedBytes = resizedOutputStream.toByteArray();
+                String resizedUrl = uploadImageToS3(new ByteArrayInputStream(resizedBytes), resizedFileName, resizedBytes.length);
+
+                return new S3ImageUrlDto(originalUrl, resizedUrl);
+            }
         }
-        String originalUrl = uploadImageToS3(originalBytes, originalFileName);
 
-        // resized image upload
-        byte[] resizedBytes = resizeImage(originalBytes, 400, 400);
-        String resizedUrl = uploadImageToS3(resizedBytes, resizedFileName);
-
-        return new S3ImageUrlDto(originalUrl, resizedUrl);
+//        // original image upload
+//        byte[] originalBytes;
+//        try (InputStream is = image.getInputStream()) {
+//            originalBytes = IOUtils.toByteArray(is);
+//        }
+//        String originalUrl = uploadImageToS3(originalBytes, originalFileName);
+//
+//        // resized image upload
+//        byte[] resizedBytes = resizeImage(originalBytes, 400, 400);
+//        String resizedUrl = uploadImageToS3(resizedBytes, resizedFileName);
+//
+//        return new S3ImageUrlDto(originalUrl, resizedUrl);
     }
 
     private byte[] resizeImage(byte[] originalBytes, int width, int height) throws IOException {
@@ -128,17 +149,17 @@ public class S3ImageService {
     }
 
     //S3에 파일 업로드
-    private String uploadImageToS3(byte[] bytes, String key) throws IOException {
+    private String uploadImageToS3(InputStream inputStream, String key, long contentLength) throws IOException {
         //metadata 생성
         ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(bytes.length);
+        metadata.setContentLength(contentLength);
         metadata.setContentType("image/jpeg");
 
-        //S3에 요청할 때 사용할 byteInputStream 생성
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+//        //S3에 요청할 때 사용할 byteInputStream 생성
+//        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
 
         //S3로 putObject 할 때 사용할 요청 객체
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, key, byteArrayInputStream, metadata);;
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucket, key, inputStream, metadata);;
 
         //put image to S3
         amazonS3.putObject(putObjectRequest);
