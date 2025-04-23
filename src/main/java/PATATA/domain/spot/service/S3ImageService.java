@@ -17,6 +17,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -97,6 +99,46 @@ public class S3ImageService {
         }
     }
 
+//    private S3ImageUrlDto uploadOriginalAndResizedImage(MultipartFile image, String folder) throws IOException {
+//        String uuid = UUID.randomUUID().toString();
+//        String baseFileName = folder + uuid;
+//
+//        // 원본 업로드
+//        String originalFileName = baseFileName + "_o.jpg";
+//        String originalUrl;
+//        try (InputStream originalInputStream = image.getInputStream()) {
+//            originalUrl = uploadImageToS3(originalInputStream, originalFileName, image.getSize());
+//        }
+//
+//        // 리사이징 이미지 생성 및 업로드
+//        Map<Integer, String> resizedUrls = new HashMap<>();
+//        int[] sizes = {400, 800, 1200};
+//
+//        for (int size : sizes) {
+//            String resizedFileName = baseFileName + "_r" + size + ".jpg";
+//
+//            try (
+//                    InputStream resizeInputStream = image.getInputStream();
+//                    ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream()
+//            ) {
+//                Thumbnails.of(resizeInputStream)
+//                        .size(size, size)
+//                        .outputFormat("jpg")
+//                        .outputQuality(0.8)
+//                        .toOutputStream(resizedOutputStream);
+//
+//                byte[] resizedBytes = resizedOutputStream.toByteArray();
+//                String resizedUrl = uploadImageToS3(new ByteArrayInputStream(resizedBytes), resizedFileName, resizedBytes.length);
+//                resizedUrls.put(size, resizedUrl);
+//            }
+//        }
+//
+//        return new S3ImageUrlDto(
+//                originalUrl,
+//                resizedUrls.get(400),
+//                resizedUrls.get(800),
+//                resizedUrls.get(1200)
+//        );
     private S3ImageUrlDto uploadOriginalAndResizedImage(MultipartFile image, String folder) throws IOException {
         String uuid = UUID.randomUUID().toString();
         String originalFileName = folder + uuid + "_o.jpg";
