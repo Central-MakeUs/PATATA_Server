@@ -11,11 +11,16 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import marvin.image.MarvinImage;
 import net.coobird.thumbnailator.Thumbnails;
+import org.marvinproject.image.transform.scale.Scale;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -84,6 +89,35 @@ public class S3ImageService {
 
         return amazonS3.getUrl(bucket, folder + s3FileName).toString();
     }
+
+//    public MultipartFile resizeImage(MultipartFile image, int targetWidth, int targetHeight) throws IOException {
+//        // 이미지 파일을 BufferedImage로 변환
+//        BufferedImage originalImage = ImageIO.read(image.getInputStream());
+//
+//        // Marvin MImage 객체로 변환
+//        MarvinImage mImage = new MarvinImage(originalImage);
+//
+//        // 이미지 리사이징
+//        Scale scale = new Scale();
+//        scale.load();  // 필요한 transform을 로드
+//        scale.setAttribute("width", targetWidth);
+//        scale.setAttribute("height", targetHeight);
+//        scale.process(mImage.clone(), mImage, null, null, false);
+//
+//        // 리사이즈된 이미지를 다시 BufferedImage로 변환
+//        BufferedImage resizedImage = mImage.getBufferedImage();
+//
+//        // 리사이즈된 이미지를 바이트 배열로 변환
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        ImageIO.write(resizedImage, "jpg", baos);
+//        baos.flush();
+//
+//        byte[] resizedImageBytes = baos.toByteArray();
+//        baos.close();
+//
+//        // 리사이즈된 이미지를 MultipartFile로 다시 변환하여 반환 (optional)
+//        return new MockMultipartFile(resizedImageBytes);  // S3에 업로드할 수 있는 형식으로 변환
+//    }
 
     public S3ImageUrlDto upload(MultipartFile image, String folder) {
         //입력받은 이미지 파일이 빈 파일인지 검증
@@ -167,6 +201,12 @@ public class S3ImageService {
 
                 log.info("Downloading original image...");
                 log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
+
+                long maxImageSize = 5 * 1024 * 1024; // 5MB 제한
+                ObjectMetadata originalMetadata = s3Object.getObjectMetadata();
+                if (originalMetadata.getContentLength() > maxImageSize) {
+                    throw new IllegalArgumentException("Image too large to process");
+                }
 
                 // 3. Resize image directly to output stream
                 ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
