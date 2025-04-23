@@ -20,6 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -200,7 +202,14 @@ public class S3ImageService {
 
 
     private String extractKeyFromUrl(String s3Url) {
-        return s3Url.substring(s3Url.indexOf(bucket) + bucket.length() + 1); // 버킷 이후 경로만 추출
+        try {
+            // URL에서 path만 추출
+            URL u = new URL(s3Url);
+            // 도메인과 앞의 슬래시 제거 후 파일 경로만 반환
+            return u.getPath().substring(1); // 앞의 '/' 제거
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid S3 URL", e);
+        }
     }
 
     private S3ImageUrlDto uploadOriginalAndResizedImage(MultipartFile image, String folder) throws IOException {
