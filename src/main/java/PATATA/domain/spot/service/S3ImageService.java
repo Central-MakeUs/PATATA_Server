@@ -146,6 +146,7 @@ public class S3ImageService {
         String originalUrl = uploadImageToS3(image, folder);
 
         // 2. S3에서 원본 이미지 다운로드
+        log.info("original url: {}", originalUrl);
         S3Object s3Object = amazonS3.getObject(bucket, extractKeyFromUrl(originalUrl));
         log.info("원본 이미지 다운로드 중...");
         InputStream originalInputStream = s3Object.getObjectContent();
