@@ -159,37 +159,40 @@ public class S3ImageService {
         try {
             log.info("original url: {}", originalUrl);
             String key = extractKeyFromUrl(originalUrl);
-            log.info("추출된 S3 키: {}", key);
-            S3Object s3Object = amazonS3.getObject(bucket, key);
-            log.info("원본 이미지 다운로드 중...");
-            InputStream originalInputStream = s3Object.getObjectContent();
-            log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
+            log.info("Extracted S3 key: {}", key);
 
-            // 3. 이미지 리사이징
-            ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
-            Thumbnails.of(originalInputStream)
-                    .size(400, 400)
-                    .outputFormat("jpg")
-                    .outputQuality(1.0)
-                    .toOutputStream(resizedOutputStream);
+            // 2. Download original with try-with-resources
+            try (S3Object s3Object = amazonS3.getObject(bucket, key);
+                 InputStream originalInputStream = s3Object.getObjectContent()) {
 
-            byte[] resizedBytes = resizedOutputStream.toByteArray();
+                log.info("Downloading original image...");
+                log.info("contentType: {}", s3Object.getObjectMetadata().getContentType());
 
-            // 4. 리사이징된 이미지 업로드
-            String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(resizedBytes.length);
-            metadata.setContentType("image/jpeg");
+                // 3. Resize image directly to output stream
+                ByteArrayOutputStream resizedOutputStream = new ByteArrayOutputStream();
+                Thumbnails.of(originalInputStream)
+                        .size(400, 400)
+                        .outputFormat("jpg")
+                        .outputQuality(1.0)
+                        .toOutputStream(resizedOutputStream);
 
-            ByteArrayInputStream resizedInputStream = new ByteArrayInputStream(resizedBytes);
-            amazonS3.putObject(new PutObjectRequest(bucket, folder + thumbnailFileName, resizedInputStream, metadata));
+                byte[] resizedBytes = resizedOutputStream.toByteArray();
 
-            // 스트림 정리
-            originalInputStream.close();
-            resizedInputStream.close();
-            resizedOutputStream.close();
+                // 4. Upload resized image
+                String thumbnailFileName = UUID.randomUUID().toString().concat("_thumbnail.jpg");
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentLength(resizedBytes.length);
+                metadata.setContentType("image/jpeg");
 
-            return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
+                try (ByteArrayInputStream resizedInputStream = new ByteArrayInputStream(resizedBytes)) {
+                    amazonS3.putObject(new PutObjectRequest(bucket,
+                            folder + thumbnailFileName,
+                            resizedInputStream,
+                            metadata));
+                }
+
+                return amazonS3.getUrl(bucket, folder + thumbnailFileName).toString();
+            }
         } catch (AmazonServiceException e) {
             log.error("AmazonServiceException: {}", e.getMessage(), e);
         } catch (SdkClientException e) {
