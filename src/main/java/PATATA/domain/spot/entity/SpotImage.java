@@ -20,7 +20,16 @@ public class SpotImage extends BaseEntity {
     private Long spotImageId;
 
     @Column(nullable = false)
-    private String imageUrl;
+    private String originalImageUrl;
+
+    @Column(nullable = false)
+    private String resizedImageUrl400;
+
+    @Column(nullable = false)
+    private String resizedImageUrl800;
+
+    @Column(nullable = false)
+    private String resizedImageUrl1200;
 
     @Column(nullable = false)
     private Boolean isRepresentative;

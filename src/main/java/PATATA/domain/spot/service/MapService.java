@@ -39,7 +39,7 @@ public class MapService {
     private final SpotImageRepository spotImageRepository;
     private final SpotConverter spotConverter;
 
-    public Page<MapResponseDto.InBoundsResponse> getSpotsListInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Pageable pageable, Member member) {
+    public Page<MapResponseDto.InBoundsResponse> getSpotsListInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Pageable pageable, Member member, int size) {
 
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(userLng, userLat));
@@ -48,7 +48,7 @@ public class MapService {
         List<Object[]> results = spotRepository.findSpotsInBounds(minLat, minLng, maxLat, maxLng, userLocation, categoryId, limit);
 
         List<MapResponseDto.InBoundsResponse> content = results.stream()
-                .map(result -> spotConverter.toInBoundsResponse(result, member))
+                .map(result -> spotConverter.toInBoundsResponse(result, member, size))
                 .collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
@@ -56,7 +56,7 @@ public class MapService {
         return new PageImpl<>(content.subList(start, end), pageable, content.size());
     }
 
-    public List<MapResponseDto.InBoundsResponse> getSpotsInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Member member) {
+    public List<MapResponseDto.InBoundsResponse> getSpotsInBounds(Double minLat, Double minLng, Double maxLat, Double maxLng, Double userLat, Double userLng, Long categoryId, Boolean withSearch, Member member, int size) {
 
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(userLng, userLat));
@@ -69,10 +69,7 @@ public class MapService {
                     Long spotId = (Long) result[0];
                     Spot spot = spotRepository.findByIdAndDeletedFalse(spotId)
                             .orElseThrow(()->new SpotHandler(SPOT_NOT_FOUND));
-                    List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
-                    List<String> imageUrls = spotImages.stream()
-                            .map(SpotImage::getImageUrl)
-                            .toList();
+                    List<String> imageUrls = getResizedImageUrls(spot, size);
                     List<SpotTag> spotTags = spotTagRepository.findBySpot(spot);
                     List<String> tags = spotTags.stream()
                             .map(spotTag -> spotTag.getTag().getTagName())
@@ -85,12 +82,9 @@ public class MapService {
                 .collect(Collectors.toList());
     }
 
-    public MapResponseDto.InBoundsResponse getSpotSearched(String spotName, Double minLatitude, Double minLongitude, Double maxLatitude, Double maxLongitude, Double userLatitude, Double userLongitude, Member member) {
+    public MapResponseDto.InBoundsResponse getSpotSearched(String spotName, Double minLatitude, Double minLongitude, Double maxLatitude, Double maxLongitude, Double userLatitude, Double userLongitude, Member member, int size) {
         Spot spotSearched = findSpotByConditions(spotName, minLatitude, minLongitude, maxLatitude, maxLongitude);
-        List<SpotImage> spotImages = spotImageRepository.findBySpot(spotSearched);
-        List<String> imageUrls = spotImages.stream()
-                .map(SpotImage::getImageUrl)
-                .toList();
+        List<String> imageUrls = getResizedImageUrls(spotSearched, size);
 //        String representativeImageUrl = spotImages.stream()
 //                .filter(SpotImage::getIsRepresentative)
 //                .findFirst()
@@ -115,5 +109,24 @@ public class MapService {
         return spotRepository.findTopInBoundsByNameOrderByScrap(
                         spotName, minLatitude, minLongitude, maxLatitude, maxLongitude)
                 .orElseThrow(() -> new SpotHandler(SPOT_CANNOT_SEARCH));
+    }
+
+    public List<String> getResizedImageUrls(Spot spot, int size) {
+        // Spot에 관련된 모든 SpotImage 리스트 가져오기
+        List<SpotImage> spotImages = spotImageRepository.findBySpot(spot);
+
+        // 이미지 URL 리스트 생성
+        return spotImages.stream()
+                .map(spotImage -> {
+                    // 각 이미지에 대해 리사이징된 URL 반환
+                    return switch (size) {
+                        case 0 -> spotImage.getOriginalImageUrl();   // original
+                        case 1 -> spotImage.getResizedImageUrl400();  // 400px
+                        case 2 -> spotImage.getResizedImageUrl800();  // 800px
+                        case 3 -> spotImage.getResizedImageUrl1200(); // 1200px
+                        default -> spotImage.getOriginalImageUrl();   // 기본값은 original
+                    };
+                })
+                .collect(Collectors.toList());
     }
 }

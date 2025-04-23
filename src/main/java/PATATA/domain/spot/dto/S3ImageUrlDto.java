@@ -7,5 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class S3ImageUrlDto {
     private String originalImageUrl;
-    private String resizedImageUrl;
+    private String resizedImage400Url;
+    private String resizedImage800Url;
+    private String resizedImage1200Url;
 }

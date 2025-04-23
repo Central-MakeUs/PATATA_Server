@@ -3,6 +3,7 @@ package PATATA.domain.spot.service;
 import PATATA.domain.member.entity.Member;
 import PATATA.domain.member.entity.Role;
 import PATATA.domain.spot.converter.SpotConverter;
+import PATATA.domain.spot.dto.S3ImageUrlDto;
 import PATATA.domain.spot.dto.ScrapResponseDto;
 import PATATA.domain.spot.dto.SpotRequestDto;
 import PATATA.domain.spot.dto.SpotResponseDto;
@@ -90,14 +91,18 @@ public class SpotService {
         List<SpotImage> spotImages = images.stream()
                 .map(imageRequest -> {
                     try {
-                        String imageUrl = s3Service.upload(imageRequest.getFile(), "spot-images/").getResizedImageUrl();
+                        S3ImageUrlDto imageUrl = s3Service.upload(imageRequest.getFile(), "spot-images/");
                         return SpotImage.builder()
                                 .spot(spot)
-                                .imageUrl(imageUrl)
+                                .originalImageUrl(imageUrl.getOriginalImageUrl())
+                                .resizedImageUrl400(imageUrl.getResizedImage400Url())
+                                .resizedImageUrl800(imageUrl.getResizedImage800Url())
+                                .resizedImageUrl1200(imageUrl.getResizedImage1200Url())
                                 .isRepresentative(imageRequest.getIsRepresentative())
                                 .sequence(imageRequest.getSequence())
                                 .build();
                     } catch (Exception e) {
+
                         throw new SpotHandler(S3_UPLOAD_FAIL);
                     }
                 })
@@ -192,32 +197,27 @@ public class SpotService {
     }
 
     //스팟 검색(정렬 포함)
-    public Page<SpotResponseDto.SearchResponse> searchSpotsByName(String spotName, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
+    public Page<SpotResponseDto.SearchResponse> searchSpotsByName(String spotName, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member, int size) {
         // 사용자 위치 Point 객체 생성
         GeometryFactory geometryFactory = new GeometryFactory();
         Point userLocation = geometryFactory.createPoint(new Coordinate(longitude, latitude));
 
         if (sortBy.equals("DISTANCE")) {
             return spotRepository.findNearbySpotsWithDistance(spotName, userLocation, pageable)
-                    .map(result -> spotConverter.toSearchResponse(result, member));
+                    .map(result -> spotConverter.toSearchResponse(result, member, size));
         } else if (sortBy.equals("RECOMMEND")) {
             return spotRepository.findBySpotNameWithDistanceOrderByScrap(spotName, userLocation, pageable)
-                    .map(result -> spotConverter.toSearchResponse(result, member));
+                    .map(result -> spotConverter.toSearchResponse(result, member, size));
         }
         throw new SpotHandler(INVALID_SORT_TYPE);
     }
 
-    public ScrapResponseDto.MySpotsResponseDto getMySpots(Member member) {
+    public ScrapResponseDto.MySpotsResponseDto getMySpots(Member member, int size) {
         List<ScrapResponseDto.SpotDto> spotDtos = spotRepository.findAllByMemberAndDeletedFalseOrderByCreatedAtDesc(member)
                 .stream()
                 .filter(spot -> !spot.isDeleted())
                 .map(spot -> {
-                    List<SpotImage> images = spotImageRepository.findBySpot(spot);
-                    String representativeImageUrl = images.stream()
-                            .filter(SpotImage::getIsRepresentative)
-                            .findFirst()
-                            .map(SpotImage::getImageUrl)
-                            .orElse(null);
+                    String representativeImageUrl = getRepresentativeImageUrl(spot, size);
 
                     return ScrapResponseDto.SpotDto.builder()
                             .spotId(spot.getSpotId())
@@ -231,7 +231,7 @@ public class SpotService {
         return new ScrapResponseDto.MySpotsResponseDto(totalSpots, spotDtos);
     }
 
-    public Page<SpotResponseDto.CategoryResponse> getSpotsByCategory(Long categoryId, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member) {
+    public Page<SpotResponseDto.CategoryResponse> getSpotsByCategory(Long categoryId, Double latitude, Double longitude, String sortBy, Pageable pageable, Member member, int size) {
 
         if (categoryId != null) {
             categoryRepository.findById(categoryId)
@@ -243,27 +243,23 @@ public class SpotService {
 
         if (sortBy.equals("DISTANCE")) {
             return spotRepository.findByCategoryOrderByDistance(categoryId, userLocation, pageable)
-                    .map(result -> spotConverter.toCategoryResponse(result, member));
+                    .map(result -> spotConverter.toCategoryResponse(result, member, size));
         } else if (sortBy.equals("RECOMMEND")) {
             return spotRepository.findByCategoryOrderByScrap(categoryId, userLocation, pageable)
-                    .map(result -> spotConverter.toCategoryResponse(result, member));
+                    .map(result -> spotConverter.toCategoryResponse(result, member, size));
         }
         throw new SpotHandler(INVALID_SORT_TYPE);
     }
 
 
-    public List<SpotResponseDto.TodaySpotResponse> getTodaySpots(Member member) {
+    public List<SpotResponseDto.TodaySpotResponse> getTodaySpots(Member member, int size) {
         List<Spot> randomSpots = spotRepository.findRandomSpots(5);
 
         // 각 스팟을 DTO로 변환
         return randomSpots.stream()
                 .map(spot -> {
                     // 대표 이미지 URL 가져오기
-                    String imageUrl = spotImageRepository.findBySpot(spot).stream()
-                            .filter(SpotImage::getIsRepresentative)
-                            .findFirst()
-                            .map(SpotImage::getImageUrl)
-                            .orElse(null);
+                    String imageUrl = getRepresentativeImageUrl(spot, size);
 
                     // 스크랩 여부 확인
                     Boolean isScraped = scrapRepository.existsByMemberAndSpotAndDeletedFalse(member, spot);
@@ -300,5 +296,31 @@ public class SpotService {
                 })
                 .collect(Collectors.toList());
 
+    }
+
+    // 공통 메소드: 대표 이미지 URL (리사이징된 이미지 URL 포함) 가져오기
+    private String getRepresentativeImageUrl(Spot spot, int size) {
+        // 대표 이미지 URL을 먼저 가져오고, 만약 없으면 null 반환
+        SpotImage representativeImage = spotImageRepository.findBySpot(spot).stream()
+                .filter(SpotImage::getIsRepresentative)
+                .findFirst()
+                .orElse(null);
+
+        if (representativeImage == null) {
+            return null;
+        }
+
+        // 리사이징된 URL 반환: size에 따라 다르게 처리
+        return switch (size) {
+            case 0 -> // original
+                    representativeImage.getOriginalImageUrl();
+            case 1 -> // 400
+                    representativeImage.getResizedImageUrl400();
+            case 2 -> // 800
+                    representativeImage.getResizedImageUrl800();
+            case 3 -> // 1200
+                    representativeImage.getResizedImageUrl1200();
+            default -> representativeImage.getOriginalImageUrl(); // 기본값은 original
+        };
     }
 }

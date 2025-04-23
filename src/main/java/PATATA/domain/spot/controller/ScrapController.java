@@ -32,9 +32,10 @@ public class ScrapController {
     @Operation(summary = "스크랩한 스팟 목록 조회 API")
     @GetMapping
     public ApiResponse<List<ScrapResponseDto.SpotDto>> getScrapSpots(
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal Member member,
+            @RequestParam(value = "resizingSize", defaultValue = "0") int size
     ) {
-        List<ScrapResponseDto.SpotDto> result = scrapService.getScrapSpots(member);
+        List<ScrapResponseDto.SpotDto> result = scrapService.getScrapSpots(member, size);
         return ApiResponse.onSuccess(result);
     }
 

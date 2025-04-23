@@ -30,6 +30,7 @@ public class ScrapService {
     private final SpotRepository spotRepository;
     private final ScrapRepository scrapRepository;
     private final SpotImageRepository spotImageRepository;
+    private final SpotService spotService;
 
     public List<ScrapResponseDto.ToggleResponse> toggleScrapSpot(List<Long> spotIds, Member member) {
         return spotIds.stream()
@@ -67,7 +68,7 @@ public class ScrapService {
                 .collect(Collectors.toList());
     }
 
-    public List<ScrapResponseDto.SpotDto> getScrapSpots(Member member) {
+    public List<ScrapResponseDto.SpotDto> getScrapSpots(Member member, int size) {
         List<Scrap> scraps = scrapRepository.findByMemberAndDeletedFalse(member);
 
         return scraps.stream()
@@ -75,11 +76,7 @@ public class ScrapService {
                 .filter(spot -> !spot.isDeleted())  // 삭제되지 않은 스팟만 필터링
                 .map(spot -> {
                     List<SpotImage> images = spotImageRepository.findBySpot(spot);
-                    String representativeImageUrl = images.stream()
-                            .filter(SpotImage::getIsRepresentative)
-                            .findFirst()
-                            .map(SpotImage::getImageUrl)
-                            .orElse(null);
+                    String representativeImageUrl = getRepresentativeImageUrl(spot, size);
 
                     return ScrapResponseDto.SpotDto.builder()
                             .spotId(spot.getSpotId())
@@ -88,5 +85,30 @@ public class ScrapService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String getRepresentativeImageUrl(Spot spot, int size) {
+        // 대표 이미지 URL을 먼저 가져오고, 만약 없으면 null 반환
+        SpotImage representativeImage = spotImageRepository.findBySpot(spot).stream()
+                .filter(SpotImage::getIsRepresentative)
+                .findFirst()
+                .orElse(null);
+
+        if (representativeImage == null) {
+            return null;
+        }
+
+        // 리사이징된 URL 반환: size에 따라 다르게 처리
+        return switch (size) {
+            case 0 -> // original
+                    representativeImage.getOriginalImageUrl();
+            case 1 -> // 400
+                    representativeImage.getResizedImageUrl400();
+            case 2 -> // 800
+                    representativeImage.getResizedImageUrl800();
+            case 3 -> // 1200
+                    representativeImage.getResizedImageUrl1200();
+            default -> representativeImage.getOriginalImageUrl(); // 기본값은 original
+        };
     }
 }

@@ -76,11 +76,12 @@ public class SpotController {
             @RequestParam(value = "latitude") Double latitude,
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal Member member,
+            @RequestParam(value = "resizingSize", defaultValue = "0") int size
     ) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<SpotResponseDto.SearchResponse> searchResults = spotService.searchSpotsByName(
-                spotName, latitude, longitude, sortBy, pageable, member);
+                spotName, latitude, longitude, sortBy, pageable, member, size);
         return ApiResponse.onSuccess(SpotResponseDto.SearchListResponse.of(searchResults));
 
     }
@@ -88,9 +89,10 @@ public class SpotController {
     @Operation(summary = "내가 작성한 스팟 조회 API")
     @GetMapping("/my-spots")
     public ApiResponse<ScrapResponseDto.MySpotsResponseDto> getMySpots(
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal Member member,
+            @RequestParam(value = "resizingSize", defaultValue = "0") int size
     ) {
-        ScrapResponseDto.MySpotsResponseDto mySpots = spotService.getMySpots(member);
+        ScrapResponseDto.MySpotsResponseDto mySpots = spotService.getMySpots(member, size);
         return ApiResponse.onSuccess(mySpots);
     }
 
@@ -102,20 +104,22 @@ public class SpotController {
             @RequestParam(value = "latitude") Double latitude,
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal Member member,
+            @RequestParam(value = "resizingSize", defaultValue = "0") int size
     ) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<SpotResponseDto.CategoryResponse> categoryResults = spotService.getSpotsByCategory(
-                categoryId, latitude, longitude, sortBy, pageable, member);
+                categoryId, latitude, longitude, sortBy, pageable, member, size);
         return ApiResponse.onSuccess(SpotResponseDto.CategoryListResponse.of(categoryResults));
     }
 
     @Operation(summary = "오늘의 추천 스팟(메인화면) API")
     @GetMapping("/today")
     public ApiResponse<List<SpotResponseDto.TodaySpotResponse>> getTodaySpot(
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal Member member,
+            @RequestParam(value = "resizingSize", defaultValue = "0") int size
     ) {
-        List<SpotResponseDto.TodaySpotResponse> recommendations = spotService.getTodaySpots(member);
+        List<SpotResponseDto.TodaySpotResponse> recommendations = spotService.getTodaySpots(member, size);
         return ApiResponse.onSuccess(recommendations);
     }
 
