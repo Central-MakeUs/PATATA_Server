@@ -134,7 +134,7 @@ public class MemberService {
             throw new S3ImageHandler(IMAGE_EMPTY);
         }
         try {
-            S3ImageUrlDto imageUrls = s3ImageService.uploadOriginal(profileImage, "profile");
+            S3ImageUrlDto imageUrls = s3ImageService.upload(profileImage, "profile");
             member.updateImage(imageUrls.getOriginalImageUrl(), imageUrls.getResizedImage400Url());
             memberRepository.save(member);
             return imageUrls.getResizedImage400Url();
