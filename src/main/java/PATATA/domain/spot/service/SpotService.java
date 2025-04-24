@@ -92,7 +92,7 @@ public class SpotService {
         List<SpotImage> spotImages = images.stream()
                 .map(imageRequest -> {
                     try {
-                        S3ImageUrlDto imageUrl = s3Service.upload(imageRequest.getFile(), "spot-images/");
+                        S3ImageUrlDto imageUrl = s3Service.upload(imageRequest.getFile(), "spotImages");
                         return SpotImage.builder()
                                 .spot(spot)
                                 .originalImageUrl(imageUrl.getOriginalImageUrl())
