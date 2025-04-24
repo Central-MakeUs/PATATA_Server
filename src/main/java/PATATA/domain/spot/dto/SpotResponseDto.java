@@ -76,7 +76,7 @@ public class SpotResponseDto {
                     .collect(Collectors.toList());
 
             List<String> images = spotImages.stream()
-                    .map(SpotImage::getOriginalImageUrl)
+                    .map(SpotImage::getResizedImageUrl1200)
                     .collect(Collectors.toList());
 
             return DetailResponse.builder()
