@@ -81,9 +81,9 @@ public class S3ImageService {
             return S3ImageUrlDto.of(originalUrl, resizedUrl400, null, null);
         }
 
-        String resizedUrl400 = amazonS3.getUrl(bucket, folder + "_resized/resized_400_" + s3FileName).toString();
-        String resizedUrl800 = amazonS3.getUrl(bucket, folder + "_resized/resized_800_" + s3FileName).toString();
-        String resizedUrl1200 = amazonS3.getUrl(bucket, folder + "_resized/resized_1200_" + s3FileName).toString();
+        String resizedUrl400 = amazonS3.getUrl(bucket, folder + "Resized/resized_400_" + s3FileName).toString();
+        String resizedUrl800 = amazonS3.getUrl(bucket, folder + "Resized/resized_800_" + s3FileName).toString();
+        String resizedUrl1200 = amazonS3.getUrl(bucket, folder + "Resized/resized_1200_" + s3FileName).toString();
 
         return S3ImageUrlDto.of(originalUrl, resizedUrl400, resizedUrl800, resizedUrl1200);
     }
