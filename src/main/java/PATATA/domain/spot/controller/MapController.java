@@ -41,7 +41,7 @@ public class MapController {
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @Parameter(description = "검색과 함께 사용 여부") @RequestParam(value = "withSearch") Boolean withSearch,
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
             ) {
         List<MapResponseDto.InBoundsResponse> spots = mapService.getSpotsInBounds(minLatitude, minLongitude, maxLatitude, maxLongitude, userLatitude, userLongitude, categoryId, withSearch, member, size);
         return ApiResponse.onSuccess(spots);
@@ -60,7 +60,7 @@ public class MapController {
             @Parameter(description = "검색과 함께 사용 여부") @RequestParam(value = "withSearch") Boolean withSearch,
             @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(value = "page", defaultValue = "0") Integer page,
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
     ) {
         Pageable pageable = PageRequest.of(page, 3);
         Page<MapResponseDto.InBoundsResponse> spots = mapService.getSpotsListInBounds(
@@ -81,7 +81,7 @@ public class MapController {
             @Parameter(description = "사용자 위도") @RequestParam(value = "userLatitude") Double userLatitude,
             @Parameter(description = "사용자 경도") @RequestParam(value = "userLongitude") Double userLongitude,
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
     ) {
         MapResponseDto.InBoundsResponse spots = mapService.getSpotSearched(spotName
                 , minLatitude, minLongitude, maxLatitude, maxLongitude, userLatitude, userLongitude, member, size);

@@ -77,7 +77,7 @@ public class SpotController {
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
     ) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<SpotResponseDto.SearchResponse> searchResults = spotService.searchSpotsByName(
@@ -90,7 +90,7 @@ public class SpotController {
     @GetMapping("/my-spots")
     public ApiResponse<ScrapResponseDto.MySpotsResponseDto> getMySpots(
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
     ) {
         ScrapResponseDto.MySpotsResponseDto mySpots = spotService.getMySpots(member, size);
         return ApiResponse.onSuccess(mySpots);
@@ -105,7 +105,7 @@ public class SpotController {
             @RequestParam(value = "longitude") Double longitude,
             @RequestParam(value = "sortBy", defaultValue = "RECOMMEND") String sortBy,
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
     ) {
         Pageable pageable = PageRequest.of(page, 10);
         Page<SpotResponseDto.CategoryResponse> categoryResults = spotService.getSpotsByCategory(
@@ -117,7 +117,7 @@ public class SpotController {
     @GetMapping("/today")
     public ApiResponse<List<SpotResponseDto.TodaySpotResponse>> getTodaySpot(
             @AuthenticationPrincipal Member member,
-            @RequestParam(value = "resizingSize", defaultValue = "0") int size
+            @RequestParam(value = "resizingSize", defaultValue = "2") int size
     ) {
         List<SpotResponseDto.TodaySpotResponse> recommendations = spotService.getTodaySpots(member, size);
         return ApiResponse.onSuccess(recommendations);
