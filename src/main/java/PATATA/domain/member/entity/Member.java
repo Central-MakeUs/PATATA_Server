@@ -33,7 +33,9 @@ public class Member extends BaseEntity implements UserDetails {
         this.role = role;
     }
 
-    private String profileImage;
+    private String originalProfileImage;
+
+    private String resizedProfileImage400;
 
     private String nickName;
 
@@ -104,7 +106,8 @@ public class Member extends BaseEntity implements UserDetails {
         this.nickName = newNickname;
     }
 
-    public void updateImage(String imageUrl) {
-        this.profileImage = imageUrl;
+    public void updateImage(String originalImageUrl, String resizedImageUrl) {
+        this.originalProfileImage = originalImageUrl;
+        this.resizedProfileImage400 = resizedImageUrl;
     }
 }

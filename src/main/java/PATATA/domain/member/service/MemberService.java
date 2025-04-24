@@ -8,7 +8,8 @@ import PATATA.domain.spot.entity.Spot;
 import PATATA.domain.spot.repository.ReviewRepository;
 import PATATA.domain.spot.repository.ScrapRepository;
 import PATATA.domain.spot.repository.SpotRepository;
-import PATATA.domain.spot.service.S3ImageService;
+import PATATA.infra.s3.dto.S3ImageUrlDto;
+import PATATA.infra.s3.service.S3ImageService;
 import PATATA.global.error.exception.JwtHandler;
 import PATATA.global.error.exception.MemberHandler;
 import PATATA.auth.jwt.service.JwtService;
@@ -133,10 +134,10 @@ public class MemberService {
             throw new S3ImageHandler(IMAGE_EMPTY);
         }
         try {
-            String imageUrl = s3ImageService.uploadOriginal(profileImage, "profile");
-            member.updateImage(imageUrl);
+            S3ImageUrlDto imageUrls = s3ImageService.uploadOriginal(profileImage, "profile");
+            member.updateImage(imageUrls.getOriginalImageUrl(), imageUrls.getResizedImage400Url());
             memberRepository.save(member);
-            return imageUrl;
+            return imageUrls.getResizedImage400Url();
         } catch (Exception e) {
             throw new SpotHandler(S3_UPLOAD_FAIL);
         }
@@ -144,13 +145,11 @@ public class MemberService {
 
     public MemberProfileDto getProfile(Member member) {
 
-        MemberProfileDto profileDto = MemberProfileDto.builder()
+        return MemberProfileDto.builder()
                 .memberId(member.getMemberId())
                 .nickName(member.getNickName())
                 .email(member.getEmail())
-                .profileImage(member.getProfileImage())
+                .profileImage(member.getResizedProfileImage400())
                 .build();
-
-        return profileDto;
     }
 }
