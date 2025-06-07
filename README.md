@@ -126,6 +126,8 @@ PATATA 서비스의 주요 엔티티 구조입니다.
 ## 🏗 아키텍처 다이어그램
 
 전체 서비스 아키텍처 구성도입니다.
+![patata dkzlxprcu drawio](https://github.com/user-attachments/assets/36210069-8316-4474-86bc-13512d025a40)
+
 
 ## 📌 협업 컨벤션
 
