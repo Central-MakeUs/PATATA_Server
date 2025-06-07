@@ -42,7 +42,7 @@ public class MemberController {
         return ApiResponse.onSuccess(image);
     }
 
-    @Operation(summary = "프로필 불러오기")
+    @Operation(summary = "프로필 상세 불러오기")
     @GetMapping("/profile")
     public ApiResponse<MemberProfileDto> getProfile(
             @AuthenticationPrincipal Member member
