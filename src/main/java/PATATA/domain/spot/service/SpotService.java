@@ -41,7 +41,6 @@ public class SpotService {
     private final SpotImageRepository spotImageRepository;
     private final ReviewRepository reviewRepository;
     private final ScrapRepository scrapRepository;
-    private final ReportRepository reportRepository;
     private final S3ImageService s3Service;
     private final SpotConverter spotConverter;
 
