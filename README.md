@@ -18,12 +18,7 @@
 
 ---
 
-## 🌐 배포 주소
-
-- **서버 URL**
-  - http://patata.kr:8080  
-  - https://patata.kr
-- **API 문서 (Swagger)**
+## 🌐 API 문서
   - [Swagger 문서 바로가기](https://patata.kr/swagger-ui/index.html#/)
   - [📄 API 상세 설명 (Notion)](https://www.notion.so/API-17cc18082ff281a887f3d7e35945cdc4?source=copy_link)
     
